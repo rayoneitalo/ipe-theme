@@ -272,6 +272,27 @@ def ipe_tree(x, ground, scale, kind):
           f'<animateTransform attributeName="transform" type="translate" values="0 0;{n(sway)} {n(fall*.33)};{n(-sway*.6)} {n(fall*.66)};{n(sway*.4)} {n(fall)}" dur="{n(dur)}s" begin="-{n(R.uniform(0, dur))}s" repeatCount="indefinite"/>'
           f'<animate attributeName="opacity" values="0;.9;.9;0" dur="{n(dur)}s" begin="-{n(R.uniform(0, dur))}s" repeatCount="indefinite"/></ellipse>')
 
+
+def oryon_constellation():
+    """Easter egg: Orion breaking through the smog over the left edge, signed ORYON."""
+    stars = {
+        "betelgeuse": (60, 42, 2.4, "#e8c868"), "bellatrix": (150, 56, 1.9, "#e9ecef"),
+        "meissa": (104, 18, 1.4, "#e9ecef"), "alnitak": (88, 112, 1.9, "#e9ecef"),
+        "alnilam": (105, 105, 2.0, "#e9ecef"), "mintaka": (122, 98, 1.8, "#e9ecef"),
+        "saiph": (76, 182, 1.8, "#e9ecef"), "rigel": (160, 172, 2.4, "#cdd8e6"),
+    }
+    links = [("betelgeuse", "meissa"), ("meissa", "bellatrix"), ("betelgeuse", "alnitak"),
+             ("bellatrix", "mintaka"), ("alnitak", "alnilam"), ("alnilam", "mintaka"),
+             ("alnitak", "saiph"), ("mintaka", "rigel")]
+    d = "".join(f"M{stars[a_][0]} {stars[a_][1]}L{stars[b][0]} {stars[b][1]}" for a_, b in links)
+    # Shifted down so wide windows, which crop the top of the sky, still show Meissa.
+    a('<g transform="translate(0 32)">')
+    a(f'<path d="{d}" stroke="#aeb2b8" stroke-opacity=".2" stroke-width=".8" stroke-dasharray="2 3" fill="none"/>')
+    for i, (x, y, r, col) in enumerate(stars.values()):
+        a(f'<circle class="tw" cx="{x}" cy="{y}" r="{r}" fill="{col}" filter="url(#glow)" style="animation-delay:-{n(i * .45)}s"/>')
+    a(f'<text x="176" y="112" font-family="{MONO}" font-size="9" letter-spacing="5" fill="#959aa1" opacity=".75">ORYON</text>')
+    a('</g>')
+
 a(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {VH}" preserveAspectRatio="xMidYMax slice">')
 a("<style>/*A*/"
   ".b{animation:bk 1.5s steps(1) infinite}@keyframes bk{50%{opacity:0}}"
@@ -280,6 +301,7 @@ a("<style>/*A*/"
   ".s{animation:st 1.3s steps(1) infinite}@keyframes st{0%{opacity:1}12%{opacity:0}}"
   ".v{animation:vz 4s ease-in-out infinite}@keyframes vz{0%,100%{opacity:.7}50%{opacity:1}}"
   ".q1,.q2{animation:q 1.2s steps(1) infinite}.q2{animation-delay:-.6s}@keyframes q{50%{opacity:.15}}"
+  ".tw{animation:tw 3.4s ease-in-out infinite}@keyframes tw{50%{opacity:.35}}"
   "</style>")
 a("<defs>")
 a('<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#030304"/><stop offset=".55" stop-color="#0d0e11"/><stop offset=".76" stop-color="#202226"/><stop offset="1" stop-color="#0c0d0f"/></linearGradient>')
@@ -309,6 +331,7 @@ a(f'<rect width="{W}" height="{VH}" fill="url(#sky)"/>')
 for ex in (640, 960):
     a(f'<ellipse cx="{ex}" cy="{TOP_PAD+70}" rx="150" ry="24" fill="url(#fog)" opacity=".09"/>')
 a(f'<g transform="translate(0 {TOP_PAD})">')
+oryon_constellation()
 
 for li, cfg in enumerate(LAYERS):
     a("<g>")
@@ -391,6 +414,8 @@ for i in range(5):
         a(f'<rect x="{x}" y="674" width="{car-3}" height="{th}" fill="#1b1c20"/>')
         ww = car - 9
     a(f'<rect x="{x+4}" y="680" width="{ww}" height="6" fill="#e9ecef" opacity=".85" filter="url(#glow)"/>')
+    if i == 4:
+        a(f'<text x="{x+6}" y="692.5" font-family="{MONO}" font-size="5.5" letter-spacing="1.2" fill="#e8c868" filter="url(#glow)">L22 · ORYON</text>')
     a(f'<rect x="{x}" y="674" width="{car-3}" height="1" fill="#d2d7de" opacity=".25"/>')
 a("</g>")
 
