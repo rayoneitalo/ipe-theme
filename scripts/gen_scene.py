@@ -353,6 +353,16 @@ a('<ellipse rx="10" ry="4" fill="#0d0e10"/><rect x="6" y="-1" width="15" height=
 a('<rect class="s" x="-1" y="3" width="2.4" height="2.4" fill="#fff" filter="url(#glow)"/></g>')
 propeller_plane()
 
+a("<g>")
+building(-10, 50, 210, FRONT, 3, "wf")
+building(1400, 110, 220, FRONT, 3, "wf")
+signs.append(dict(layer=3, text="HOTEL", vertical=True, x=166, y=190, w=27, h=5 * 15.6 * 1.3 + 8, cs=15.6))
+signs.append(dict(layer=3, text="ラーメン", vertical=True, x=1408, y=250, w=27, h=4 * 15.6 * 1.3 + 8, cs=15.6))
+for s in signs[-2:]:
+    sign_svg(s, R.uniform(0, 9), s["text"] != "HOTEL")
+for bx, by, r in beacons:
+    a(f'<circle class="b" cx="{n(bx)}" cy="{n(by)}" r="{r}" fill="#dc5a50" filter="url(#glow)"/>')
+a("</g>")
 a(f'<rect y="735" width="{W}" height="{H-735}" fill="#040405" opacity=".93"/>')
 px = R.uniform(0, 150)
 while px < W:
@@ -385,16 +395,6 @@ a("</g>")
 a(f'<rect y="920" width="{W}" height="{H-920}" fill="#070809"/><rect y="920" width="{W}" height="1" fill="#c8ced6" opacity=".08"/>')
 street_lamp(1238)
 
-a("<g>")
-building(-10, 50, 210, FRONT, 3, "wf")
-building(1400, 110, 220, FRONT, 3, "wf")
-signs.append(dict(layer=3, text="HOTEL", vertical=True, x=166, y=190, w=27, h=5 * 15.6 * 1.3 + 8, cs=15.6))
-signs.append(dict(layer=3, text="ラーメン", vertical=True, x=1408, y=250, w=27, h=4 * 15.6 * 1.3 + 8, cs=15.6))
-for s in signs[-2:]:
-    sign_svg(s, R.uniform(0, 9), s["text"] != "HOTEL")
-for bx, by, r in beacons:
-    a(f'<circle class="b" cx="{n(bx)}" cy="{n(by)}" r="{r}" fill="#dc5a50" filter="url(#glow)"/>')
-a("</g>")
 
 for tx, kind, size in ((70, "yellow", 1.15), (330, "pink", 1.0), (1150, "white", 1.05), (1520, "yellow", 1.2)):
     ipe_tree(tx, 962, size, kind)
