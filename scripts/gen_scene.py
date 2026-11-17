@@ -325,7 +325,6 @@ for pid, count, lo, hi in (("rn", 34, 14, 30), ("rf", 46, 8, 16)):
     width, op = ("1.1", ".2") if pid == "rn" else (".8", ".1")
     a(f'<path d="{"".join(d)}" stroke="#c8ced6" stroke-opacity="{op}" stroke-width="{width}" stroke-linecap="round"/>')
     a("</pattern>")
-a('<clipPath id="bb"><rect x="1310" y="205" width="136" height="80"/></clipPath>')
 a("</defs>")
 
 a(f'<rect width="{W}" height="{VH}" fill="url(#sky)"/>')
@@ -346,12 +345,6 @@ for li, cfg in enumerate(LAYERS):
         x += bw + R.random() * cfg["gap"]
     if li == 1:
         a(f'<rect x="1303" y="140" width="150" height="{H-140}" fill="{cfg["body"]}"/>')
-        a('<rect x="1310" y="205" width="136" height="80" fill="#08090b" stroke="#e9ecef" stroke-opacity=".25"/>')
-        a(f'<g clip-path="url(#bb)"><g filter="url(#glow)" fill="#e9ecef" font-family="{MONO}" font-size="26" font-weight="600">')
-        a('<text x="1316" y="243">__BB__'
-          '<animateTransform attributeName="transform" type="translate" from="0 0" to="-__BBW__ 0" dur="__BBD__s" repeatCount="indefinite"/></text>')
-        a(f'</g><text x="1316" y="273" fill="#aeb2b8" font-family="{MONO}" font-size="11">L22 CINZA</text>')
-        a('<rect x="1310" y="205" width="136" height="80" fill="url(#scan)"/></g>')
         eye_sign()
     if li == 2:
         congress(560)

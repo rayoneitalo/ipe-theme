@@ -15,8 +15,7 @@ and the ipês still bloom at street level.
 - **Palette.** Repaints the app in dark grays with a cold white accent
   (Claude Code 2.1.325 or newer).
 - **Weather sign.** A lit sign above the message box with your city, the
-  city's time in 24h format, temperature, sky and humidity. The billboard in
-  the scene scrolls the same weather.
+  city's time in 24h format, temperature, sky and humidity.
 - **Chat opacity slider.** Eight segments beside the sign set how solid the
   chat panels are over the backdrop, from 20% to 90%. The choice is kept
   across sessions.
@@ -85,7 +84,8 @@ terminal look in `~/.cache/ipe/`. No API key is needed or used.
 ## Spotify (optional)
 
 Skip this section and the theme works the same. Once set up, the weather sign
-also shows the song or podcast playing on your Spotify account. With
+also shows the song or podcast playing on your Spotify account, and the
+neon box at the top of the tower on the right scrolls it with its controls. With
 `--control`, ⏮ ⏸ ⏭ buttons appear beside it (playback control needs Spotify
 Premium). It needs macOS, because the token lives in the Keychain.
 
