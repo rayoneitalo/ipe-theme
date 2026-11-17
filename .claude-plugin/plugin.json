@@ -2,5 +2,6 @@
   "name": "ipe-theme",
   "version": "0.3.0",
   "description": "IPÊ/87: black-and-gray cyberpunk Brasília backdrop with ipê trees in bloom, dark palette and a live weather sign for Claude Desktop",
-  "types": "./types/index.d.ts"
+  "types": "./types/index.d.ts",
+  "license": "MIT"
 }

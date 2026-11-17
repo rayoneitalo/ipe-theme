@@ -360,8 +360,15 @@ export const register: Register = on => {
     }
 
     return (
-      <Box flexDirection="row" flexWrap="wrap" alignItems="center" columnGap={2} rowGap={1}>
-        <Svg source={ledSign(segments)} alt={line} />
+      <Box
+        width="100%"
+        flexDirection="row"
+        flexWrap="wrap"
+        justifyContent="flex-end"
+        alignItems="center"
+        columnGap={2}
+        rowGap={1}
+      >
         <Box flexDirection="row" alignItems="center" columnGap={1}>
           <Text dimColor>CHAT</Text>
           {OPACITY_STEPS.map(step => (
@@ -374,6 +381,7 @@ export const register: Register = on => {
           ))}
           <Text dimColor>{`${Math.round(opacity * 100)}%`}</Text>
         </Box>
+        <Svg source={ledSign(segments)} alt={line} />
       </Box>
     )
   })

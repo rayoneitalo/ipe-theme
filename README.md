@@ -91,3 +91,8 @@ python3 scripts/gen_scene.py > hooks/scene.js
 ```
 
 `hooks/make-colors.js` is Claude Code's palette generator, copied unchanged.
+
+## License
+
+MIT, see [LICENSE](LICENSE). `hooks/make-colors.js` comes from Claude Code and is not
+covered by it.
