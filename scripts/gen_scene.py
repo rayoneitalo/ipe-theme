@@ -181,34 +181,6 @@ def clock_tower():
       f'<text x="{n(mx+mw/2)}" y="{my+34}" font-size="8.5" fill="#aeb2b8">HOJE · SESSÃO 23:58</text></g>')
 
 
-def mascot_pillar():
-    """Vigia, the line's own cyborg watchman, stencilled on the widest pillar."""
-    x0, x1 = MASCOT_X
-    cx = (x0 + x1) / 2
-    a(f'<rect x="{x0-10}" y="735" width="{x1-x0+20}" height="9" fill="#0c0d0f"/>')
-    a(f'<rect x="{x0}" y="735" width="{x1-x0}" height="185" fill="#0d0e10"/>')
-    a(f'<rect x="{x0}" y="744" width="1" height="176" fill="#c8ced6" opacity=".1"/>')
-    a(f'<rect x="{x1-1}" y="744" width="1" height="176" fill="#000" opacity=".5"/>')
-    a(f'<g transform="translate({cx} 800) scale(1.3) translate({-cx} -800)">')
-    a(f'<path d="M{cx-26} 776Q{cx-26} 758 {cx-10} 756L{cx+10} 756Q{cx+26} 758 {cx+26} 776'
-      f'L{cx+26} 818Q{cx+26} 832 {cx+14} 838L{cx-14} 838Q{cx-26} 832 {cx-26} 818Z" '
-      'fill="#1c1d21" stroke="#b4b8be" stroke-width="1.4"/>')
-    a(f'<rect x="{cx-33}" y="790" width="7" height="18" fill="#1c1d21" stroke="#b4b8be" stroke-width="1.1"/>')
-    a(f'<rect x="{cx+26}" y="790" width="7" height="18" fill="#1c1d21" stroke="#b4b8be" stroke-width="1.1"/>')
-    a(f'<path d="M{cx+12} 756L{cx+18} 742" stroke="#b4b8be" stroke-width="1.4"/>')
-    a(f'<circle class="b" cx="{cx+18}" cy="741" r="1.8" fill="#dc5a50" filter="url(#glow)"/>')
-    a(f'<rect class="v" x="{cx-22}" y="784" width="44" height="9" rx="1.5" fill="#e9ecef" filter="url(#glow)"/>')
-    a(f'<rect x="{cx-22}" y="788" width="44" height="1" fill="#0d0e10" opacity=".55"/>')
-    a(f'<path d="M{cx-16} 794v9M{cx-3} 794v6M{cx+11} 794v11" stroke="#c8ced6" stroke-opacity=".35" stroke-width="1"/>')
-    a(f'<rect x="{cx-13}" y="812" width="26" height="18" rx="2" fill="#0b0c0e" stroke="#b4b8be" stroke-width="1.1"/>')
-    a(f'<path d="M{cx-9} 817H{cx+9}M{cx-9} 821H{cx+9}M{cx-9} 825H{cx+9}" stroke="#5a5e65" stroke-width="1.2"/>')
-    a(f'<circle cx="{cx-20}" cy="806" r="1.8" fill="#b4b8be"/><circle cx="{cx+20}" cy="806" r="1.8" fill="#b4b8be"/>')
-    a(f'<path d="M{cx-33} 806C{cx-48} 820 {cx-40} 846 {cx-46} 872" stroke="#3b3e44" stroke-width="2.2" fill="none"/>')
-    a(f'<text x="{cx}" y="862" text-anchor="middle" font-family="{MONO}" font-size="10" letter-spacing="4" fill="#7b7f86">VIGIA</text>')
-    a(f'<path d="M{cx-14} 866v7M{cx+2} 866v4M{cx+15} 866v9" stroke="#7b7f86" stroke-opacity=".5"/>')
-    a('</g>')
-
-
 def street_lamp(x):
     a(f'<path d="M{x} 920V842h-14" stroke="#16171a" stroke-width="2.4" fill="none"/>')
     a(f'<rect x="{x-20}" y="840" width="10" height="3" fill="#eef1f4" filter="url(#glow)"/>')
@@ -382,15 +354,10 @@ a('<rect class="s" x="-1" y="3" width="2.4" height="2.4" fill="#fff" filter="url
 propeller_plane()
 
 a(f'<rect y="735" width="{W}" height="{H-735}" fill="#040405" opacity=".93"/>')
-MASCOT_X = (1262, 1386)
 px = R.uniform(0, 150)
 while px < W:
-    if MASCOT_X[0] - 30 < px < MASCOT_X[1] + 10:
-        px += 150
-        continue
     a(f'<rect x="{n(px-8)}" y="735" width="34" height="7" fill="#0c0d0f"/><rect x="{n(px)}" y="735" width="18" height="185" fill="#0c0d0f"/><rect x="{n(px)}" y="742" width="1" height="178" fill="#c8ced6" opacity=".07"/>')
     px += 150
-mascot_pillar()
 a(f'<rect y="700" width="{W}" height="35" fill="#101114"/><rect y="700" width="{W}" height="1" fill="#d2d7de" opacity=".2"/><rect y="694" width="{W}" height="1" fill="#a0a6b0" opacity=".14"/>')
 lamps = []
 lx = 30
@@ -416,8 +383,7 @@ for i in range(5):
 a("</g>")
 
 a(f'<rect y="920" width="{W}" height="{H-920}" fill="#070809"/><rect y="920" width="{W}" height="1" fill="#c8ced6" opacity=".08"/>')
-street_lamp(MASCOT_X[0] - 24)
-a(f'<rect x="{sum(MASCOT_X)/2-20}" y="924" width="40" height="70" fill="url(#refl)"/>')
+street_lamp(1238)
 
 a("<g>")
 building(-10, 50, 210, FRONT, 3, "wf")

@@ -11,8 +11,7 @@ and the ipês still bloom at street level.
   layered towers, the National Congress and the Cathedral, ipê trees in bloom
   with petals falling through the rain, fog, an elevated rail line with a passing train, a
   helicopter searchlight, an old propeller plane, flickering shop signs, a
-  clock tower stopped at 23:58, a cinema marquee, and Vigia, the line's cyborg
-  watchman, stencilled on a pillar at the right edge.
+  clock tower stopped at 23:58 and a cinema marquee.
 - **Palette.** Repaints the app in dark grays with a cold white accent
   (Claude Code 2.1.325 or newer).
 - **Weather sign.** A lit sign above the message box with your city, the
