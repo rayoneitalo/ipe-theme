@@ -144,10 +144,10 @@ def sign_svg(s, delay, broken):
 def eye_sign():
     """Neon eye above the billboard."""
     a('<g class="fl" style="animation-delay:-3s">')
-    a('<rect x="1078" y="150" width="60" height="40" fill="#060608" fill-opacity=".9" stroke="#e9ecef" stroke-opacity=".5"/>')
+    a('<rect x="1348" y="150" width="60" height="40" fill="#060608" fill-opacity=".9" stroke="#e9ecef" stroke-opacity=".5"/>')
     a('<g filter="url(#glow)" stroke="#eef1f4" stroke-width="2" fill="none">')
-    a('<path d="M1090 170Q1108 156 1126 170Q1108 184 1090 170Z"/><path d="M1108 177V186" stroke-width="1.4"/>')
-    a('</g><circle cx="1108" cy="170" r="4.5" fill="#eef1f4" filter="url(#glow)"/></g>')
+    a('<path d="M1360 170Q1378 156 1396 170Q1378 184 1360 170Z"/><path d="M1378 177V186" stroke-width="1.4"/>')
+    a('</g><circle cx="1378" cy="170" r="4.5" fill="#eef1f4" filter="url(#glow)"/></g>')
 
 
 def clock_tower():
@@ -302,7 +302,7 @@ for pid, count, lo, hi in (("rn", 34, 14, 30), ("rf", 46, 8, 16)):
     width, op = ("1.1", ".2") if pid == "rn" else (".8", ".1")
     a(f'<path d="{"".join(d)}" stroke="#c8ced6" stroke-opacity="{op}" stroke-width="{width}" stroke-linecap="round"/>')
     a("</pattern>")
-a('<clipPath id="bb"><rect x="1040" y="205" width="136" height="80"/></clipPath>')
+a('<clipPath id="bb"><rect x="1310" y="205" width="136" height="80"/></clipPath>')
 a("</defs>")
 
 a(f'<rect width="{W}" height="{VH}" fill="url(#sky)"/>')
@@ -321,13 +321,13 @@ for li, cfg in enumerate(LAYERS):
         building(x, lerp(*cfg["top"], R.random()), bw, cfg, li, f"w{li}")
         x += bw + R.random() * cfg["gap"]
     if li == 1:
-        a(f'<rect x="1033" y="140" width="150" height="{H-140}" fill="{cfg["body"]}"/>')
-        a('<rect x="1040" y="205" width="136" height="80" fill="#08090b" stroke="#e9ecef" stroke-opacity=".25"/>')
+        a(f'<rect x="1303" y="140" width="150" height="{H-140}" fill="{cfg["body"]}"/>')
+        a('<rect x="1310" y="205" width="136" height="80" fill="#08090b" stroke="#e9ecef" stroke-opacity=".25"/>')
         a(f'<g clip-path="url(#bb)"><g filter="url(#glow)" fill="#e9ecef" font-family="{MONO}" font-size="26" font-weight="600">')
-        a('<text x="1046" y="243">__BB__'
+        a('<text x="1316" y="243">__BB__'
           '<animateTransform attributeName="transform" type="translate" from="0 0" to="-__BBW__ 0" dur="__BBD__s" repeatCount="indefinite"/></text>')
-        a(f'</g><text x="1046" y="273" fill="#aeb2b8" font-family="{MONO}" font-size="11">L22 CINZA</text>')
-        a('<rect x="1040" y="205" width="136" height="80" fill="url(#scan)"/></g>')
+        a(f'</g><text x="1316" y="273" fill="#aeb2b8" font-family="{MONO}" font-size="11">L22 CINZA</text>')
+        a('<rect x="1310" y="205" width="136" height="80" fill="url(#scan)"/></g>')
         eye_sign()
     if li == 2:
         congress(560)
@@ -347,7 +347,7 @@ a("<g>")
 building(-10, 330, 205, LAYERS[2], 3, "w2")
 building(1405, 360, 215, LAYERS[2], 3, "w2")
 signs.append(dict(layer=3, text="HOTEL", vertical=True, x=150, y=410, w=27, h=5 * 15.6 * 1.3 + 8, cs=15.6))
-signs.append(dict(layer=3, text="ラーメン", vertical=True, x=1418, y=440, w=27, h=4 * 15.6 * 1.3 + 8, cs=15.6))
+signs.append(dict(layer=3, text="ラーメン", vertical=True, x=1548, y=440, w=27, h=4 * 15.6 * 1.3 + 8, cs=15.6))
 for s in signs[-2:]:
     sign_svg(s, R.uniform(0, 9), s["text"] != "HOTEL")
 for bx, by, r in beacons:
