@@ -82,6 +82,54 @@ weather:
 The results stay on your machine: in the plugin's session state, and for the
 terminal look in `~/.cache/ipe/`. No API key is needed or used.
 
+## Spotify (optional)
+
+Skip this section and the theme works the same. Once set up, the weather sign
+also shows the song or podcast playing on your Spotify account. With
+`--control`, ⏮ ⏸ ⏭ buttons appear beside it (playback control needs Spotify
+Premium). It needs macOS, because the token lives in the Keychain.
+
+1. On [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard),
+   create an app. Set the redirect URI to exactly
+   `http://127.0.0.1:8898/callback`, tick **Web API**, and copy the
+   **Client ID**. The flow does not use a client secret, so never paste one
+   anywhere.
+2. In this repository's folder, run:
+
+   ```bash
+   python3 scripts/spotify-login.py --client-id <your client id>
+   ```
+
+   Add `--control` for the playback buttons. Log in to Spotify in the browser
+   tab it opens.
+3. In Claude, run `/ipe spotify`.
+
+`/ipe spotify off` hides it for the session. To disconnect for good:
+
+```bash
+python3 scripts/spotify-login.py --logout
+```
+
+and revoke the app at [spotify.com/account/apps](https://www.spotify.com/account/apps/).
+
+How the connection is kept safe:
+
+- **No client secret.** Login uses OAuth's Authorization Code flow with PKCE,
+  made for apps that cannot keep a secret.
+- **Local-only redirect.** The browser returns only to `127.0.0.1`, and the
+  answer must carry a one-time `state` value, so another page cannot inject a
+  login.
+- **Token in the Keychain only.** The refresh token is stored under the service
+  `ipe-theme-spotify` and written through `security` on stdin, so it never
+  shows in the process list. It is never printed, logged, or saved to a file,
+  this repository or the plugin's state. The short-lived access token stays in
+  memory.
+- **Smallest permissions.** By default only `user-read-currently-playing`.
+  `--control` adds `user-read-playback-state` and `user-modify-playback-state`.
+- **Spotify only.** Requests go to `accounts.spotify.com` and
+  `api.spotify.com` over HTTPS. Track names are cleaned and escaped before they
+  are drawn.
+
 ## Changing the scene
 
 The backdrop is generated. Edit `scripts/gen_scene.py`, then:

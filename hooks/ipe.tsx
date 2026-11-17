@@ -1,9 +1,11 @@
 import { atom, read, update } from 'claude-code'
 import type { Register } from 'claude-code'
 
-import type { Sky } from '../types'
+import type { Music, Sky } from '../types'
 import { makeColors } from './make-colors.js'
 import { SCENE } from './scene.js'
+import { canControl, control, forget, nowPlaying, status as spotifyStatus } from './spotify'
+import type { Control, SpotifyStatus } from './spotify'
 
 const PLUGIN = 'ipe-theme'
 const GLASS = { blur: 16, tint: '#0b0c0e' }
@@ -40,6 +42,8 @@ const offAtom = atom({ plugin: 'ipe-theme', key: 'isOff' } as const, false)
 const locatingAtom = atom({ plugin: 'ipe-theme', key: 'locating' } as const, 'pending')
 const opacityAtom = atom({ plugin: 'ipe-theme', key: 'opacity' } as const, DEFAULT_OPACITY)
 const modeAtom = atom({ plugin: 'ipe-theme', key: 'mode' } as const, 'on')
+const musicAtom = atom({ plugin: 'ipe-theme', key: 'music' } as const, null)
+const controlAtom = atom({ plugin: 'ipe-theme', key: 'canControl' } as const, false)
 
 const SCENES = { on: 'ipe', still: 'ipe-still' } as const
 type Mode = keyof typeof SCENES
@@ -200,9 +204,50 @@ async function refresh($: any, relocate: boolean) {
   await tick($)
 }
 
+const MUSIC_MS = 10_000
+let musicTimer: { cancel: () => void } | undefined
+let isMusicOff = false
+
+const sameMusic = (a: Music | null, b: Music | null) =>
+  a === b || (!!a && !!b && a.title === b.title && a.artist === b.artist && a.isPlaying === b.isPlaying)
+
+async function pollMusic($: any) {
+  const playing = await nowPlaying($)
+  if (playing === undefined) return
+  if (!sameMusic(await read($, musicAtom), playing)) await update($, musicAtom, () => playing)
+  const can = canControl()
+  if ((await read($, controlAtom)) !== can) await update($, controlAtom, () => can)
+}
+
+function stopMusic() {
+  musicTimer?.cancel()
+  musicTimer = undefined
+}
+
+async function startMusic($: any): Promise<SpotifyStatus> {
+  stopMusic()
+  const state = await spotifyStatus($)
+  if (state !== 'ready') {
+    await update($, musicAtom, () => null)
+    return state
+  }
+  musicTimer = $.clock.every(MUSIC_MS, () => void pollMusic($))
+  await pollMusic($)
+  return state
+}
+
+async function press($: any, action: Control, isPlaying: boolean) {
+  const refusal = await control($, action, isPlaying)
+  if (refusal) $.ui.toast(refusal)
+  $.clock.after(800, () => void pollMusic($))
+}
+
+const shorten = (text: string, max: number) => ([...text].length > max ? `${[...text].slice(0, max - 1).join('')}…` : text)
+
 function stopHud() {
   timers.forEach(t => t.cancel())
   timers = []
+  stopMusic()
 }
 
 function startHud($: any) {
@@ -211,6 +256,7 @@ function startHud($: any) {
   timers.push($.clock.every(WEATHER_MS, () => void refresh($, false)))
   timers.push($.clock.every(LOCATE_MS, () => void refresh($, true)))
   void refresh($, true)
+  if (!isMusicOff) void startMusic($)
 }
 
 // Engines up to 2.1.317 expose $.ui.backdrop only; 2.1.325+ replaced it with
@@ -253,8 +299,8 @@ export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'ipe',
-      description: 'IPÊ theme: animated, still or off',
-      argumentHint: 'on | still | off',
+      description: 'IPÊ theme: animated, still or off; spotify connects the optional now-playing display',
+      argumentHint: 'on | still | off | spotify [off]',
     })
     $.ui.status(undefined)
     const opacity = clampOpacity((await $.store.get('opacity')) ?? DEFAULT_OPACITY)
@@ -268,7 +314,34 @@ export const register: Register = on => {
   })
 
   on('command.run', { command: 'ipe' }, async ($, e) => {
-    const mode = e.args.trim().toLowerCase() || 'on'
+    const [word = 'on', detail] = e.args.trim().toLowerCase().split(/\s+/).filter(Boolean)
+    const mode = word
+
+    if (mode === 'spotify') {
+      if (detail === 'off') {
+        isMusicOff = true
+        stopMusic()
+        await update($, musicAtom, () => null)
+
+        return {
+          text:
+            'Spotify display off for this session. Run /ipe spotify to turn it back on. ' +
+            'To remove the stored tokens, run python3 scripts/spotify-login.py --logout.',
+        }
+      }
+      isMusicOff = false
+      forget()
+      const state = await startMusic($)
+
+      return {
+        text:
+          state === 'ready'
+            ? `Spotify connected${canControl() ? ', with play/pause/next' : ', showing what is playing'}.`
+            : state === 'unavailable'
+              ? 'Spotify needs the macOS Keychain, which this session cannot reach.'
+              : 'Spotify is not set up. It is optional: follow "Spotify (optional)" in the README, then run /ipe spotify again.',
+      }
+    }
 
     if (mode === 'off') {
       await remove($)
@@ -279,7 +352,7 @@ export const register: Register = on => {
     }
 
     if (mode !== 'on' && mode !== 'still') {
-      return { text: 'Usage: /ipe on | still | off' }
+      return { text: 'Usage: /ipe on | still | off | spotify [off]' }
     }
 
     await update($, modeAtom, () => mode)
@@ -334,7 +407,10 @@ export const register: Register = on => {
     const city = sky?.city ?? (locating === 'failed' ? 'location unavailable' : 'locating…')
     const weather = sky ? `${sky.temp}°C ${describe(sky.code)}` : ''
     const humidity = sky ? `humidity ${sky.humidity}%` : ''
-    const line = ['IPÊ/87', city, time, weather, humidity].filter(Boolean).join(' · ')
+    const music = await read($, musicAtom)
+    const canCtl = await read($, controlAtom)
+    const track = music ? shorten(`${music.title} — ${music.artist}`, 42) : ''
+    const line = ['IPÊ/87', city, time, weather, humidity, track && `♪ ${track}`].filter(Boolean).join(' · ')
 
     if (e.surface === 'terminal') {
       const { Text } = $.ui.resolve(e)
@@ -358,6 +434,9 @@ export const register: Register = on => {
       segments.push({ text: describe(sky.code).toUpperCase(), size: 13, fill: '#b4b8be', spacing: 1.5 })
       segments.push({ text: `HUMIDITY ${sky.humidity}%`, size: 13, fill: '#b4b8be', spacing: 1.5 })
     }
+    if (music) {
+      segments.push({ text: `${music.isPlaying ? '♪' : '‖'} ${track}`, size: 13, fill: '#e8c868', spacing: 0.5, glow: true })
+    }
 
     return (
       <Box
@@ -369,6 +448,18 @@ export const register: Register = on => {
         columnGap={2}
         rowGap={1}
       >
+        {music && canCtl && (
+          <Box flexDirection="row" alignItems="center" columnGap={1}>
+            <Button key="music-previous" plain label="⏮" onPress={() => press($, 'previous', music.isPlaying)} />
+            <Button
+              key="music-toggle"
+              plain
+              label={music.isPlaying ? '⏸' : '▶'}
+              onPress={() => press($, 'toggle', music.isPlaying)}
+            />
+            <Button key="music-next" plain label="⏭" onPress={() => press($, 'next', music.isPlaying)} />
+          </Box>
+        )}
         <Box flexDirection="row" alignItems="center" columnGap={1}>
           <Text dimColor>CHAT</Text>
           {OPACITY_STEPS.map(step => (

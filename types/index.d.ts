@@ -8,6 +8,8 @@ export type Sky = {
 
 export type Locating = 'pending' | 'failed' | 'done'
 
+export type Music = { title: string; artist: string; isPlaying: boolean }
+
 declare module 'claude-code' {
   interface PluginState {
     'ipe-theme': {
@@ -17,6 +19,8 @@ declare module 'claude-code' {
       locating: Locating
       opacity: number
       mode: 'on' | 'still'
+      music: Music | null
+      canControl: boolean
     }
   }
 }
