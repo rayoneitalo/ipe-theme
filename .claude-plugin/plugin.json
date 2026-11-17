@@ -1,0 +1,6 @@
+{
+  "name": "garoa-theme",
+  "version": "0.2.0",
+  "description": "GAROA/87: black-and-gray cyberpunk São Paulo backdrop, dark palette and a live weather sign for Claude Desktop",
+  "types": "./types/index.d.ts"
+}

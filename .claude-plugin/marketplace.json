@@ -1,0 +1,5 @@
+{
+  "name": "garoa-theme",
+  "owner": { "name": "rayoneitalo" },
+  "plugins": [{ "name": "garoa-theme", "source": "./" }]
+}

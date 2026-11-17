@@ -1,0 +1,370 @@
+import random
+import sys
+
+R = random.Random(2087)
+W, H = 1600, 1000
+TOP_PAD = 280
+VH = H + TOP_PAD
+out = []
+
+
+def a(s):
+    out.append(s)
+
+
+def n(x):
+    s = f"{x:.1f}"
+    return s[:-2] if s.endswith(".0") else s
+
+
+def lerp(lo, hi, k):
+    return lo + (hi - lo) * k
+
+
+LAYERS = [
+    dict(body="#16171b", top=(150, 500), w=(40, 100), cell=(6, 8), win=(3, 4), colors=("#5d626b", "#80858e"), gap=6),
+    dict(body="#101114", top=(250, 580), w=(60, 140), cell=(8, 11), win=(4, 6), colors=("#8a9099", "#cdd2d8"), gap=14),
+    dict(body="#0a0b0d", top=(370, 640), w=(80, 190), cell=(11, 15), win=(5, 8), colors=("#9aa0a8", "#e6eaee"), gap=22),
+]
+FRONT = dict(body="#060607", cell=(16, 22), win=(8, 12), colors=("#a0a6b0", "#e8ecf0"))
+WORDS_V = ["HOTEL", "BAR", "LAN", "24H", "ラーメン", "居酒屋", "MOTEL"]
+WORDS_H = ["FARMÁCIA 24H", "CÂMBIO", "PASTEL", "LIBERDADE", "DROGARIA"]
+MONO = "Menlo,Consolas,'DejaVu Sans Mono',monospace"
+
+signs = []
+beacons = []
+
+
+def window_patterns(prefix, cfg, lits):
+    cw, ch = cfg["cell"]
+    ww, wh = cfg["win"]
+    cols, rows = 8, 12
+    for vi, lit in enumerate(lits):
+        a(f'<pattern id="{prefix}{vi}" width="{cols*cw}" height="{rows*ch}" patternUnits="userSpaceOnUse">')
+        for r in range(rows):
+            for c in range(cols):
+                if R.random() < lit:
+                    col = R.choice(cfg["colors"])
+                    op = n(lerp(.3, 1, R.random()))
+                    a(f'<rect x="{c*cw}" y="{r*ch}" width="{ww}" height="{wh}" fill="{col}" opacity="{op}"/>')
+        a("</pattern>")
+
+
+def pixo(x, y, w, size):
+    gw = size * .36
+    count = min(9, int(w // (gw * 1.5)))
+    d = []
+    for i in range(count):
+        gx = x + i * gw * 1.5
+        k = R.randrange(4)
+        d.append(f"M{n(gx)} {n(y+size)}V{n(y+size*R.random()*.2)}")
+        if k == 0:
+            d.append(f"L{n(gx+gw)} {n(y)}V{n(y+size)}")
+        elif k == 1:
+            d.append(f"M{n(gx)} {n(y+size*.45)}L{n(gx+gw)} {n(y+size*.2)}M{n(gx+gw)} {n(y)}V{n(y+size)}")
+        elif k == 2:
+            d.append(f"M{n(gx)} {n(y)}L{n(gx+gw)} {n(y+size*.5)}L{n(gx)} {n(y+size)}")
+        else:
+            d.append(f"M{n(gx+gw*.5)} {n(y)}V{n(y+size)}M{n(gx)} {n(y+size*.3)}L{n(gx+gw)} {n(y+size*.12)}")
+    if d:
+        a(f'<path d="{"".join(d)}" stroke="#cdd2d8" stroke-opacity=".2" stroke-width="1.3" fill="none"/>')
+
+
+def add_sign(layer, x, top, bw, cs):
+    if R.random() < .55:
+        text = R.choice(WORDS_V)
+        w, h = cs * 1.7, len(text) * cs * 1.3 + cs * .5
+        y = top + lerp(.08, .45, R.random()) * (690 - top)
+        if y + h > 690:
+            return
+        sx = x + 3 if R.random() < .5 else x + bw - w - 3
+        signs.append(dict(layer=layer, text=text, vertical=True, x=sx, y=y, w=w, h=h, cs=cs))
+    else:
+        text = R.choice(WORDS_H)
+        w = len(text) * cs * .62 + cs * 1.2
+        if w > bw * 1.1:
+            return
+        signs.append(dict(layer=layer, text=text, vertical=False, x=x + bw / 2 - w / 2, y=top - cs * 1.9 - 3, w=w, h=cs * 1.8, cs=cs))
+
+
+def building(x, top, bw, cfg, li, prefix):
+    body = cfg["body"]
+    a(f'<rect x="{n(x)}" y="{n(top)}" width="{n(bw)}" height="{n(H-top)}" fill="{body}"/>')
+    roof = top
+    if R.random() < .35:
+        sw, sh = bw * lerp(.4, .7, R.random()), lerp(8, 30, R.random())
+        a(f'<rect x="{n(x+(bw-sw)/2)}" y="{n(top-sh)}" width="{n(sw)}" height="{n(sh)}" fill="{body}"/>')
+        roof = top - sh
+    if R.random() < .4:
+        tw = min(bw * .3, 18)
+        a(f'<rect x="{n(x+R.random()*(bw-tw))}" y="{n(top-tw*.6)}" width="{n(tw)}" height="{n(tw*.6)}" fill="{body}"/>')
+    if R.random() < .3:
+        ax, ah = x + bw * lerp(.2, .8, R.random()), lerp(12, 40, R.random())
+        a(f'<path d="M{n(ax)} {n(roof)}V{n(roof-ah)}" stroke="{body}" stroke-width="2"/>')
+        beacons.append((ax, roof - ah, 1.6))
+    a(f'<rect x="{n(x)}" y="{n(top)}" width="1" height="{n(H-top)}" fill="#c8ced6" opacity=".08"/>')
+    v = R.randrange(3)
+    a(f'<rect width="{n(bw-8)}" height="{n(max(0, 745-top-8))}" fill="url(#{prefix}{v})" transform="translate({n(x+4)} {n(top+8)})"/>')
+    if li in (1, 2) and R.random() < (.2 if li == 1 else .45):
+        pixo(x + 6, top + 10, bw - 12, 12 if li == 1 else 18)
+    if li == 3:
+        pixo(x + 8, top + 14, bw - 16, 24)
+    if li in (1, 2) and R.random() < (.14 if li == 1 else .36):
+        add_sign(li, x, top, bw, 10 if li == 1 else 13)
+
+
+def mast(x, top):
+    base, half = 560, 8
+    d = [f"M{n(x)} {n(top)}L{n(x-half)} {base}M{n(x)} {n(top)}L{n(x+half)} {base}"]
+    y, s = top + 10, 1
+    while y < base:
+        k = (y - top) / (base - top)
+        d.append(f"M{n(x-half*k)} {n(y)}L{n(x+half*k*s)} {n(y+10)}")
+        y += 10
+        s = -s
+    a(f'<path d="{"".join(d)}" stroke="#202227" stroke-width="1.2" fill="none"/>')
+    beacons.append((x, top - 2, 2.2))
+    beacons.append((x, top + (base - top) * .4, 1.6))
+
+
+def sign_svg(s, delay, broken):
+    cls = "fb" if broken else "fl"
+    x, y, w, h, cs = s["x"], s["y"], s["w"], s["h"], s["cs"]
+    a(f'<g class="{cls}" style="animation-delay:-{n(delay)}s">')
+    a(f'<rect x="{n(x)}" y="{n(y)}" width="{n(w)}" height="{n(h)}" fill="#060608" fill-opacity=".9" stroke="#e9ecef" stroke-opacity=".55"/>')
+    a(f'<g filter="url(#glow)" fill="#eef1f4" font-family="{MONO}" font-weight="700" font-size="{n(cs)}" text-anchor="middle">')
+    if s["vertical"]:
+        for i, ch in enumerate(s["text"]):
+            a(f'<text x="{n(x+w/2)}" y="{n(y+cs*1.25+i*cs*1.3)}">{ch}</text>')
+    else:
+        a(f'<text x="{n(x+w/2)}" y="{n(y+h/2+cs*.36)}">{s["text"]}</text>')
+    a("</g></g>")
+
+
+
+def eye_sign():
+    """Neon eye above the billboard."""
+    a('<g class="fl" style="animation-delay:-3s">')
+    a('<rect x="1078" y="150" width="60" height="40" fill="#060608" fill-opacity=".9" stroke="#e9ecef" stroke-opacity=".5"/>')
+    a('<g filter="url(#glow)" stroke="#eef1f4" stroke-width="2" fill="none">')
+    a('<path d="M1090 170Q1108 156 1126 170Q1108 184 1090 170Z"/><path d="M1108 177V186" stroke-width="1.4"/>')
+    a('</g><circle cx="1108" cy="170" r="4.5" fill="#eef1f4" filter="url(#glow)"/></g>')
+
+
+def clock_tower():
+    """Clock frozen at two minutes to midnight, with a cinema marquee below."""
+    import math
+    x, top, w = 232, 380, 100
+    cx, cy, r = x + w / 2, 440, 32
+    a(f'<rect x="{x}" y="{top}" width="{w}" height="{H-top}" fill="#0a0b0d"/>')
+    a(f'<rect x="{x+w/2-12}" y="{top-26}" width="24" height="26" fill="#0a0b0d"/>')
+    a(f'<rect x="{x}" y="{top}" width="1" height="{H-top}" fill="#c8ced6" opacity=".1"/>')
+    a(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="#08090b" stroke="#e9ecef" stroke-opacity=".8" stroke-width="2" filter="url(#glow)"/>')
+    ticks = []
+    for k in range(12):
+        ang = math.radians(k * 30)
+        r1 = r - (7 if k % 3 == 0 else 4)
+        ticks.append(f"M{n(cx+math.sin(ang)*r1)} {n(cy-math.cos(ang)*r1)}L{n(cx+math.sin(ang)*(r-1.5))} {n(cy-math.cos(ang)*(r-1.5))}")
+    a(f'<path d="{"".join(ticks)}" stroke="#e9ecef" stroke-width="1.6"/>')
+    hour, minute = math.radians((11 + 58 / 60) * 30), math.radians(58 * 6)
+    a(f'<g stroke="#ffffff" stroke-linecap="round" filter="url(#glow)">'
+      f'<path d="M{n(cx)} {n(cy)}L{n(cx+math.sin(hour)*17)} {n(cy-math.cos(hour)*17)}" stroke-width="3"/>'
+      f'<path d="M{n(cx)} {n(cy)}L{n(cx+math.sin(minute)*26)} {n(cy-math.cos(minute)*26)}" stroke-width="1.8"/></g>')
+    a(f'<circle cx="{n(cx)}" cy="{cy}" r="2.4" fill="#fff"/>')
+    mx, my, mw, mh = x - 22, 560, w + 44, 44
+    a(f'<rect x="{mx}" y="{my}" width="{mw}" height="{mh}" fill="#060608" stroke="#e9ecef" stroke-opacity=".35"/>')
+    for i, bx in enumerate(range(mx + 6, mx + mw - 3, 9)):
+        cls = "q1" if i % 2 else "q2"
+        a(f'<circle class="{cls}" cx="{bx}" cy="{my+4}" r="1.6" fill="#eef1f4"/><circle class="{cls}" cx="{bx}" cy="{my+mh-4}" r="1.6" fill="#eef1f4"/>')
+    a(f'<g fill="#eef1f4" font-family="{MONO}" text-anchor="middle" filter="url(#glow)">'
+      f'<text x="{n(mx+mw/2)}" y="{my+21}" font-size="12" font-weight="700">CINE GAROA</text>'
+      f'<text x="{n(mx+mw/2)}" y="{my+34}" font-size="8.5" fill="#aeb2b8">HOJE · SESSÃO 23:58</text></g>')
+
+
+def mascot_pillar():
+    """Vigia, the line's own cyborg watchman, stencilled on the widest pillar."""
+    x0, x1 = MASCOT_X
+    cx = (x0 + x1) / 2
+    a(f'<rect x="{x0-10}" y="735" width="{x1-x0+20}" height="9" fill="#0c0d0f"/>')
+    a(f'<rect x="{x0}" y="735" width="{x1-x0}" height="185" fill="#0d0e10"/>')
+    a(f'<rect x="{x0}" y="744" width="1" height="176" fill="#c8ced6" opacity=".1"/>')
+    a(f'<rect x="{x1-1}" y="744" width="1" height="176" fill="#000" opacity=".5"/>')
+    a(f'<g transform="translate({cx} 800) scale(1.3) translate({-cx} -800)">')
+    a(f'<path d="M{cx-26} 776Q{cx-26} 758 {cx-10} 756L{cx+10} 756Q{cx+26} 758 {cx+26} 776'
+      f'L{cx+26} 818Q{cx+26} 832 {cx+14} 838L{cx-14} 838Q{cx-26} 832 {cx-26} 818Z" '
+      'fill="#1c1d21" stroke="#b4b8be" stroke-width="1.4"/>')
+    a(f'<rect x="{cx-33}" y="790" width="7" height="18" fill="#1c1d21" stroke="#b4b8be" stroke-width="1.1"/>')
+    a(f'<rect x="{cx+26}" y="790" width="7" height="18" fill="#1c1d21" stroke="#b4b8be" stroke-width="1.1"/>')
+    a(f'<path d="M{cx+12} 756L{cx+18} 742" stroke="#b4b8be" stroke-width="1.4"/>')
+    a(f'<circle class="b" cx="{cx+18}" cy="741" r="1.8" fill="#dc5a50" filter="url(#glow)"/>')
+    a(f'<rect class="v" x="{cx-22}" y="784" width="44" height="9" rx="1.5" fill="#e9ecef" filter="url(#glow)"/>')
+    a(f'<rect x="{cx-22}" y="788" width="44" height="1" fill="#0d0e10" opacity=".55"/>')
+    a(f'<path d="M{cx-16} 794v9M{cx-3} 794v6M{cx+11} 794v11" stroke="#c8ced6" stroke-opacity=".35" stroke-width="1"/>')
+    a(f'<rect x="{cx-13}" y="812" width="26" height="18" rx="2" fill="#0b0c0e" stroke="#b4b8be" stroke-width="1.1"/>')
+    a(f'<path d="M{cx-9} 817H{cx+9}M{cx-9} 821H{cx+9}M{cx-9} 825H{cx+9}" stroke="#5a5e65" stroke-width="1.2"/>')
+    a(f'<circle cx="{cx-20}" cy="806" r="1.8" fill="#b4b8be"/><circle cx="{cx+20}" cy="806" r="1.8" fill="#b4b8be"/>')
+    a(f'<path d="M{cx-33} 806C{cx-48} 820 {cx-40} 846 {cx-46} 872" stroke="#3b3e44" stroke-width="2.2" fill="none"/>')
+    a(f'<text x="{cx}" y="862" text-anchor="middle" font-family="{MONO}" font-size="10" letter-spacing="4" fill="#7b7f86">VIGIA</text>')
+    a(f'<path d="M{cx-14} 866v7M{cx+2} 866v4M{cx+15} 866v9" stroke="#7b7f86" stroke-opacity=".5"/>')
+    a('</g>')
+
+
+def street_lamp(x):
+    a(f'<path d="M{x} 920V842h-14" stroke="#16171a" stroke-width="2.4" fill="none"/>')
+    a(f'<rect x="{x-20}" y="840" width="10" height="3" fill="#eef1f4" filter="url(#glow)"/>')
+    a(f'<path d="M{x-15} 843L{x-40} 920H{x+10}Z" fill="url(#cone)" opacity=".8"/>')
+    a(f'<rect x="{x+2}" y="882" width="11" height="15" fill="#1b1c20" stroke="#3b3e44"/><rect x="{x+2}" y="882" width="11" height="2" fill="#3b3e44"/>')
+
+
+def propeller_plane():
+    """An old propeller plane crossing the smog, the other way from the helicopter."""
+    a('<g><animateTransform attributeName="transform" type="translate" from="-160 95" to="1760 95" dur="130s" repeatCount="indefinite"/>')
+    a('<g fill="#0e0f12" stroke="#3b3e44" stroke-width=".8">')
+    a('<path d="M-20 0Q-8 -4 14 -2.5L20 0L14 2.5Q-8 4 -20 0Z"/>')
+    a('<path d="M-17 -1L-23 -10L-19 -10L-12 -1.5Z"/><path d="M-4 1.5L9 1.5L5 6L-7 6Z"/><path d="M2 -2.5Q5 -6 9 -3Z"/></g>')
+    a('<ellipse cx="21" cy="0" rx="1.2" ry="6.5" fill="#a0a6b0" opacity=".25"/>')
+    a('<circle class="b" cx="-22" cy="-9" r="1.4" fill="#dc5a50" filter="url(#glow)"/>')
+    a('<rect class="s" x="-1" y="5" width="2" height="2" fill="#fff" filter="url(#glow)"/></g>')
+
+a(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {VH}" preserveAspectRatio="xMidYMax slice">')
+a("<style>/*A*/"
+  ".b{animation:bk 1.5s steps(1) infinite}@keyframes bk{50%{opacity:0}}"
+  ".fl{animation:fl 9s steps(1) infinite}.fb{animation:fl 2.3s steps(1) infinite}"
+  "@keyframes fl{0%,100%{opacity:1}2%{opacity:.15}4%{opacity:1}6%{opacity:.3}8%{opacity:1}}"
+  ".s{animation:st 1.3s steps(1) infinite}@keyframes st{0%{opacity:1}12%{opacity:0}}"
+  ".v{animation:vz 4s ease-in-out infinite}@keyframes vz{0%,100%{opacity:.7}50%{opacity:1}}"
+  ".q1,.q2{animation:q 1.2s steps(1) infinite}.q2{animation-delay:-.6s}@keyframes q{50%{opacity:.15}}"
+  "</style>")
+a("<defs>")
+a('<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#030304"/><stop offset=".55" stop-color="#0d0e11"/><stop offset=".76" stop-color="#202226"/><stop offset="1" stop-color="#0c0d0f"/></linearGradient>')
+a('<radialGradient id="fog"><stop offset="0" stop-color="#bec4cc" stop-opacity=".5"/><stop offset="1" stop-color="#bec4cc" stop-opacity="0"/></radialGradient>')
+a('<radialGradient id="vig" cx=".5" cy=".62" r=".75"><stop offset=".45" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".72"/></radialGradient>')
+a('<linearGradient id="beam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e9ecef" stop-opacity=".25"/><stop offset="1" stop-color="#e9ecef" stop-opacity="0"/></linearGradient>')
+a('<linearGradient id="cone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c8ced6" stop-opacity=".16"/><stop offset="1" stop-color="#c8ced6" stop-opacity="0"/></linearGradient>')
+a('<linearGradient id="refl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9ecef" stop-opacity=".08"/><stop offset="1" stop-color="#e9ecef" stop-opacity="0"/></linearGradient>')
+a('<filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>')
+a('<pattern id="scan" width="4" height="3" patternUnits="userSpaceOnUse"><rect width="4" height="1" fill="#000" opacity=".28"/></pattern>')
+for li, cfg in enumerate(LAYERS):
+    window_patterns(f"w{li}", cfg, (.1, .18, .28))
+window_patterns("wf", FRONT, (.08, .12, .16))
+for pid, count, lo, hi in (("rn", 34, 14, 30), ("rf", 46, 8, 16)):
+    a(f'<pattern id="{pid}" width="240" height="240" patternUnits="userSpaceOnUse">')
+    d = []
+    for _ in range(count):
+        x, y, ln = R.uniform(0, 240), R.uniform(0, 240), R.uniform(lo, hi)
+        d.append(f"M{n(x)} {n(y)}l{n(ln*.12)} {n(-ln)}")
+    width, op = ("1.1", ".2") if pid == "rn" else (".8", ".1")
+    a(f'<path d="{"".join(d)}" stroke="#c8ced6" stroke-opacity="{op}" stroke-width="{width}" stroke-linecap="round"/>')
+    a("</pattern>")
+a('<clipPath id="bb"><rect x="1040" y="205" width="136" height="80"/></clipPath>')
+a("</defs>")
+
+a(f'<rect width="{W}" height="{VH}" fill="url(#sky)"/>')
+for ex in (640, 960):
+    a(f'<ellipse cx="{ex}" cy="{TOP_PAD+70}" rx="150" ry="24" fill="url(#fog)" opacity=".09"/>')
+a(f'<g transform="translate(0 {TOP_PAD})">')
+
+for li, cfg in enumerate(LAYERS):
+    a("<g>")
+    if li == 0:
+        for k in (.12, .44, .8):
+            mast(W * k + R.random() * 40, lerp(60, 130, R.random()))
+    x = -R.random() * 20
+    while x < W:
+        bw = lerp(*cfg["w"], R.random())
+        building(x, lerp(*cfg["top"], R.random()), bw, cfg, li, f"w{li}")
+        x += bw + R.random() * cfg["gap"]
+    if li == 1:
+        a(f'<rect x="1033" y="140" width="150" height="{H-140}" fill="{cfg["body"]}"/>')
+        a('<rect x="1040" y="205" width="136" height="80" fill="#08090b" stroke="#e9ecef" stroke-opacity=".25"/>')
+        a(f'<g clip-path="url(#bb)"><g filter="url(#glow)" fill="#e9ecef" font-family="{MONO}" font-size="26" font-weight="600">')
+        a('<text x="1046" y="243">__BB__'
+          '<animateTransform attributeName="transform" type="translate" from="0 0" to="-__BBW__ 0" dur="__BBD__s" repeatCount="indefinite"/></text>')
+        a(f'</g><text x="1046" y="273" fill="#aeb2b8" font-family="{MONO}" font-size="11">L22 CINZA</text>')
+        a('<rect x="1040" y="205" width="136" height="80" fill="url(#scan)"/></g>')
+        eye_sign()
+    if li == 2:
+        clock_tower()
+    for i, s in enumerate(signs):
+        if s["layer"] == li and not (li == 2 and s["x"] < 370 and s["x"] + s["w"] > 200):
+            sign_svg(s, R.uniform(0, 9), R.random() < .2)
+    for bx, by, r in beacons:
+        a(f'<circle class="b" cx="{n(bx)}" cy="{n(by)}" r="{r}" fill="#dc5a50" filter="url(#glow)" style="animation-delay:-{n(R.uniform(0,1.5))}s"/>')
+    beacons.clear()
+    a("</g>")
+
+for fx, fy, fw, fh, dur in ((300, 560, 900, 160, 70), (1200, 640, 1000, 200, 90)):
+    a(f'<ellipse cx="{fx}" cy="{fy}" rx="{fw/2}" ry="{fh/2}" fill="url(#fog)" opacity=".35">'
+      f'<animateTransform attributeName="transform" type="translate" values="-160 0;160 0;-160 0" dur="{dur}s" repeatCount="indefinite"/></ellipse>')
+
+a('<g><animateTransform attributeName="transform" type="translate" from="1700 175" to="-120 175" dur="80s" repeatCount="indefinite"/>')
+a('<path d="M0 4L-70 900H70Z" fill="url(#cone)" style="mix-blend-mode:screen"><animateTransform attributeName="transform" type="rotate" values="-16;16;-16" dur="11s" repeatCount="indefinite"/></path>')
+a('<ellipse rx="10" ry="4" fill="#0d0e10"/><rect x="6" y="-1" width="15" height="1.8" fill="#0d0e10"/><rect x="-14" y="-6" width="28" height="1" fill="#a0a6b0" opacity=".4"/>')
+a('<rect class="s" x="-1" y="3" width="2.4" height="2.4" fill="#fff" filter="url(#glow)"/></g>')
+propeller_plane()
+
+a(f'<rect y="735" width="{W}" height="{H-735}" fill="#040405" opacity=".93"/>')
+MASCOT_X = (1262, 1386)
+px = R.uniform(0, 150)
+while px < W:
+    if MASCOT_X[0] - 30 < px < MASCOT_X[1] + 10:
+        px += 150
+        continue
+    a(f'<rect x="{n(px-8)}" y="735" width="34" height="7" fill="#0c0d0f"/><rect x="{n(px)}" y="735" width="18" height="185" fill="#0c0d0f"/><rect x="{n(px)}" y="742" width="1" height="178" fill="#c8ced6" opacity=".07"/>')
+    px += 150
+mascot_pillar()
+a(f'<rect y="700" width="{W}" height="35" fill="#101114"/><rect y="700" width="{W}" height="1" fill="#d2d7de" opacity=".2"/><rect y="694" width="{W}" height="1" fill="#a0a6b0" opacity=".14"/>')
+lamps = []
+lx = 30
+while lx < W:
+    a(f'<path d="M{lx} 694V674h9" stroke="#16171a" stroke-width="1.6" fill="none"/>')
+    lamps.append(lx + 9)
+    lx += 96
+a('<g fill="#eef1f4" filter="url(#glow)">' + "".join(f'<rect x="{x-2}" y="673" width="5" height="2"/>' for x in lamps) + "</g>")
+
+a('<g><animateTransform attributeName="transform" type="translate" from="-700 0" to="2400 0" dur="18s" repeatCount="indefinite"/>')
+th, car = 20, 110
+a(f'<path d="M{5*car} {674+11}L{5*car+170} {674+2}V{674+22}Z" fill="url(#beam)"/>')
+for i in range(5):
+    x = i * car
+    if i == 4:
+        a(f'<path d="M{x} 674H{x+car-24}L{x+car} 694H{x}Z" fill="#1b1c20"/>')
+        ww = car - 32
+    else:
+        a(f'<rect x="{x}" y="674" width="{car-3}" height="{th}" fill="#1b1c20"/>')
+        ww = car - 9
+    a(f'<rect x="{x+4}" y="680" width="{ww}" height="6" fill="#e9ecef" opacity=".85" filter="url(#glow)"/>')
+    a(f'<rect x="{x}" y="674" width="{car-3}" height="1" fill="#d2d7de" opacity=".25"/>')
+a("</g>")
+
+a(f'<rect y="920" width="{W}" height="{H-920}" fill="#070809"/><rect y="920" width="{W}" height="1" fill="#c8ced6" opacity=".08"/>')
+street_lamp(MASCOT_X[0] - 24)
+a(f'<rect x="{sum(MASCOT_X)/2-20}" y="924" width="40" height="70" fill="url(#refl)"/>')
+
+a("<g>")
+building(-10, 50, 210, FRONT, 3, "wf")
+building(1400, 110, 220, FRONT, 3, "wf")
+signs.append(dict(layer=3, text="HOTEL", vertical=True, x=166, y=190, w=27, h=5 * 15.6 * 1.3 + 8, cs=15.6))
+signs.append(dict(layer=3, text="ラーメン", vertical=True, x=1408, y=250, w=27, h=4 * 15.6 * 1.3 + 8, cs=15.6))
+for s in signs[-2:]:
+    sign_svg(s, R.uniform(0, 9), s["text"] != "HOTEL")
+for bx, by, r in beacons:
+    a(f'<circle class="b" cx="{n(bx)}" cy="{n(by)}" r="{r}" fill="#dc5a50" filter="url(#glow)"/>')
+a("</g>")
+
+for s in signs:
+    if s["layer"] >= 2:
+        cx = s["x"] + s["w"] / 2
+        a(f'<rect x="{n(cx-s["w"]*.3)}" y="924" width="{n(s["w"]*.6)}" height="76" fill="url(#refl)"/>')
+
+a("</g>")
+for pid, dur in (("rf", ".75"), ("rn", ".42")):
+    a(f'<rect x="-240" y="-240" width="{W+480}" height="{VH+480}" fill="url(#{pid})">'
+      f'<animateTransform attributeName="transform" type="translate" from="0 0" to="0 240" dur="{dur}s" repeatCount="indefinite"/></rect>')
+a(f'<rect width="{W}" height="{VH}" fill="url(#scan)" opacity=".6"/>')
+a(f'<rect width="{W}" height="{VH}" fill="url(#vig)"/>')
+a("</svg>")
+
+svg = "".join(out)
+assert "`" not in svg and "${" not in svg and "\\" not in svg
+sys.stdout.write("// Generated by scripts/gen_scene.py (seed 2087). Regenerate, don't edit.\nexport const SCENE = `" + svg + "`\n")
