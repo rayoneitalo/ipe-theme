@@ -143,11 +143,12 @@ def sign_svg(s, delay, broken):
 
 def eye_sign():
     """Neon eye above the billboard."""
-    a('<g class="fl" style="animation-delay:-3s">')
+    # The mod swaps everything between the markers for the playing track.
+    a('<!--EYE--><g class="fl" style="animation-delay:-3s">')
     a('<rect x="1348" y="150" width="60" height="40" fill="#060608" fill-opacity=".9" stroke="#e9ecef" stroke-opacity=".5"/>')
     a('<g filter="url(#glow)" stroke="#eef1f4" stroke-width="2" fill="none">')
     a('<path d="M1360 170Q1378 156 1396 170Q1378 184 1360 170Z"/><path d="M1378 177V186" stroke-width="1.4"/>')
-    a('</g><circle cx="1378" cy="170" r="4.5" fill="#eef1f4" filter="url(#glow)"/></g>')
+    a('</g><circle cx="1378" cy="170" r="4.5" fill="#eef1f4" filter="url(#glow)"/></g><!--/EYE-->')
 
 
 def clock_tower():

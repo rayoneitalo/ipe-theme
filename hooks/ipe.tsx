@@ -75,17 +75,34 @@ const stripAnimation = (svg: string) =>
 const BILLBOARD_IDLE = 'CHUVA ÁCIDA · pH 4.1 · USE CAPA · '
 const BILLBOARD_FONT = 26
 
-// What is playing on Spotify takes the billboard; the weather returns when nothing plays.
+const EYE_BOX = /<!--EYE-->[\s\S]*?<!--\/EYE-->/
+const TRACK_FONT = 15
+
+// While Spotify has a track, the small box above the billboard scrolls it in
+// place of the neon eye; the billboard keeps the weather.
+function trackBox(music: Music): string {
+  const message = `${music.title} — ${music.artist} · `.toUpperCase()
+  const travel = width(message, TRACK_FONT)
+  const fill = music.isPlaying ? '#e8c868' : '#959aa1'
+  return (
+    '<clipPath id="track"><rect x="1310" y="150" width="136" height="40"/></clipPath>' +
+    `<rect x="1310" y="150" width="136" height="40" fill="#060608" fill-opacity=".9" stroke="${fill}" stroke-opacity=".55"/>` +
+    `<g clip-path="url(#track)"><g filter="url(#glow)" fill="${fill}" font-family="${MONO}" font-size="${TRACK_FONT}" font-weight="600">` +
+    `<text x="1316" y="175">${escapeXml(message + message)}` +
+    `<animateTransform attributeName="transform" type="translate" from="0 0" to="-${travel.toFixed(1)} 0" ` +
+    `dur="${Math.max(6, travel / 45).toFixed(1)}s" repeatCount="indefinite"/></text></g></g>`
+  )
+}
+
 function billboard(sky: Sky | null, music: Music | null): string {
-  const message = music
-    ? `${music.isPlaying ? 'now playing' : 'paused'} · ${music.title} — ${music.artist} · `.toUpperCase()
-    : sky
-      ? `${sky.city} · ${sky.temp}°C · ${describe(sky.code)} · humidity ${sky.humidity}% · `.toUpperCase()
-      : BILLBOARD_IDLE
+  const message = sky
+    ? `${sky.city} · ${sky.temp}°C · ${describe(sky.code)} · humidity ${sky.humidity}% · `.toUpperCase()
+    : BILLBOARD_IDLE
   const travel = width(message, BILLBOARD_FONT)
-  return SCENE.replace('__BB__', escapeXml(message + message))
+  const scene = SCENE.replace('__BB__', escapeXml(message + message))
     .replace('__BBW__', travel.toFixed(1))
     .replace('__BBD__', Math.max(8, travel / 40).toFixed(1))
+  return music ? scene.replace(EYE_BOX, trackBox(music)) : scene
 }
 
 type Segment = { text: string; size: number; fill: string; weight?: number; spacing?: number; glow?: boolean; flicker?: boolean }
