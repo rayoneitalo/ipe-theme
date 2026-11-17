@@ -133,7 +133,8 @@ export async function control($: any, action: Control, isPlaying: boolean): Prom
         : isPlaying
           ? ['PUT', 'pause']
           : ['PUT', 'play']
-  const res = await $.http.fetch(`${PLAYER}/${path}`, { method, headers: { authorization: `Bearer ${t}` } })
+  // An empty body sends Content-Length: 0; without it Spotify can hold the request open.
+  const res = await $.http.fetch(`${PLAYER}/${path}`, { method, headers: { authorization: `Bearer ${t}` }, body: '' })
   if (res.ok) return undefined
   if (res.status === 403) return 'Spotify Premium is needed to control playback.'
   if (res.status === 404) return 'No active Spotify device. Start playing on one first.'

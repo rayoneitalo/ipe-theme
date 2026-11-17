@@ -75,10 +75,13 @@ const stripAnimation = (svg: string) =>
 const BILLBOARD_IDLE = 'CHUVA ÁCIDA · pH 4.1 · USE CAPA · '
 const BILLBOARD_FONT = 26
 
-function billboard(sky: Sky | null): string {
-  const message = sky
-    ? `${sky.city} · ${sky.temp}°C · ${describe(sky.code)} · humidity ${sky.humidity}% · `.toUpperCase()
-    : BILLBOARD_IDLE
+// What is playing on Spotify takes the billboard; the weather returns when nothing plays.
+function billboard(sky: Sky | null, music: Music | null): string {
+  const message = music
+    ? `${music.isPlaying ? 'now playing' : 'paused'} · ${music.title} — ${music.artist} · `.toUpperCase()
+    : sky
+      ? `${sky.city} · ${sky.temp}°C · ${describe(sky.code)} · humidity ${sky.humidity}% · `.toUpperCase()
+      : BILLBOARD_IDLE
   const travel = width(message, BILLBOARD_FONT)
   return SCENE.replace('__BB__', escapeXml(message + message))
     .replace('__BBW__', travel.toFixed(1))
@@ -236,8 +239,12 @@ async function startMusic($: any): Promise<SpotifyStatus> {
   return state
 }
 
+// A press has a 10 s budget; give up well before it rather than have the hook skipped.
 async function press($: any, action: Control, isPlaying: boolean) {
-  const refusal = await control($, action, isPlaying)
+  const refusal = await Promise.race([
+    control($, action, isPlaying),
+    $.clock.sleep(6000).then(() => 'Spotify did not answer in time. Try again.'),
+  ])
   if (refusal) $.ui.toast(refusal)
   $.clock.after(800, () => void pollMusic($))
 }
@@ -377,7 +384,7 @@ export const register: Register = on => {
       Box: (props: Record<string, unknown>) => JSX.Element
       Svg: (props: Record<string, unknown>) => JSX.Element
     }
-    const svg = billboard(await read($, skyAtom))
+    const svg = billboard(await read($, skyAtom), await read($, musicAtom))
     const scene = props.scene ?? props.id
 
     return (
