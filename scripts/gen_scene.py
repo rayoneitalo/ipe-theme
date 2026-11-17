@@ -26,7 +26,6 @@ LAYERS = [
     dict(body="#101114", top=(250, 580), w=(60, 140), cell=(8, 11), win=(4, 6), colors=("#8a9099", "#cdd2d8"), gap=14),
     dict(body="#0a0b0d", top=(370, 640), w=(80, 190), cell=(11, 15), win=(5, 8), colors=("#9aa0a8", "#e6eaee"), gap=22),
 ]
-FRONT = dict(body="#060607", cell=(16, 22), win=(8, 12), colors=("#a0a6b0", "#e8ecf0"))
 WORDS_V = ["HOTEL", "BAR", "LAN", "24H", "ラーメン", "居酒屋", "MOTEL"]
 WORDS_H = ["FARMÁCIA 24H", "CÂMBIO", "PASTEL", "LIBERDADE", "DROGARIA"]
 MONO = "Menlo,Consolas,'DejaVu Sans Mono',monospace"
@@ -294,7 +293,6 @@ a('<filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlu
 a('<pattern id="scan" width="4" height="3" patternUnits="userSpaceOnUse"><rect width="4" height="1" fill="#000" opacity=".28"/></pattern>')
 for li, cfg in enumerate(LAYERS):
     window_patterns(f"w{li}", cfg, (.1, .18, .28))
-window_patterns("wf", FRONT, (.08, .12, .16))
 for pid, count, lo, hi in (("rn", 34, 14, 30), ("rf", 46, 8, 16)):
     a(f'<pattern id="{pid}" width="240" height="240" patternUnits="userSpaceOnUse">')
     d = []
@@ -343,6 +341,20 @@ for li, cfg in enumerate(LAYERS):
     beacons.clear()
     a("</g>")
 
+# Edge buildings in the nearest city layer's tone, so the sides blend with
+# the skyline instead of framing it in a darker block.
+a("<g>")
+building(-10, 330, 205, LAYERS[2], 3, "w2")
+building(1405, 360, 215, LAYERS[2], 3, "w2")
+signs.append(dict(layer=3, text="HOTEL", vertical=True, x=150, y=410, w=27, h=5 * 15.6 * 1.3 + 8, cs=15.6))
+signs.append(dict(layer=3, text="ラーメン", vertical=True, x=1418, y=440, w=27, h=4 * 15.6 * 1.3 + 8, cs=15.6))
+for s in signs[-2:]:
+    sign_svg(s, R.uniform(0, 9), s["text"] != "HOTEL")
+for bx, by, r in beacons:
+    a(f'<circle class="b" cx="{n(bx)}" cy="{n(by)}" r="{r}" fill="#dc5a50" filter="url(#glow)"/>')
+beacons.clear()
+a("</g>")
+
 for fx, fy, fw, fh, dur in ((300, 560, 900, 160, 70), (1200, 640, 1000, 200, 90)):
     a(f'<ellipse cx="{fx}" cy="{fy}" rx="{fw/2}" ry="{fh/2}" fill="url(#fog)" opacity=".35">'
       f'<animateTransform attributeName="transform" type="translate" values="-160 0;160 0;-160 0" dur="{dur}s" repeatCount="indefinite"/></ellipse>')
@@ -353,16 +365,6 @@ a('<ellipse rx="10" ry="4" fill="#0d0e10"/><rect x="6" y="-1" width="15" height=
 a('<rect class="s" x="-1" y="3" width="2.4" height="2.4" fill="#fff" filter="url(#glow)"/></g>')
 propeller_plane()
 
-a("<g>")
-building(-10, 50, 210, FRONT, 3, "wf")
-building(1400, 110, 220, FRONT, 3, "wf")
-signs.append(dict(layer=3, text="HOTEL", vertical=True, x=166, y=190, w=27, h=5 * 15.6 * 1.3 + 8, cs=15.6))
-signs.append(dict(layer=3, text="ラーメン", vertical=True, x=1408, y=250, w=27, h=4 * 15.6 * 1.3 + 8, cs=15.6))
-for s in signs[-2:]:
-    sign_svg(s, R.uniform(0, 9), s["text"] != "HOTEL")
-for bx, by, r in beacons:
-    a(f'<circle class="b" cx="{n(bx)}" cy="{n(by)}" r="{r}" fill="#dc5a50" filter="url(#glow)"/>')
-a("</g>")
 a(f'<rect y="735" width="{W}" height="{H-735}" fill="#040405" opacity=".93"/>')
 px = R.uniform(0, 150)
 while px < W:
