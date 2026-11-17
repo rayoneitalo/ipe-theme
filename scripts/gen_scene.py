@@ -177,7 +177,7 @@ def clock_tower():
         cls = "q1" if i % 2 else "q2"
         a(f'<circle class="{cls}" cx="{bx}" cy="{my+4}" r="1.6" fill="#eef1f4"/><circle class="{cls}" cx="{bx}" cy="{my+mh-4}" r="1.6" fill="#eef1f4"/>')
     a(f'<g fill="#eef1f4" font-family="{MONO}" text-anchor="middle" filter="url(#glow)">'
-      f'<text x="{n(mx+mw/2)}" y="{my+21}" font-size="12" font-weight="700">CINE GAROA</text>'
+      f'<text x="{n(mx+mw/2)}" y="{my+21}" font-size="12" font-weight="700">CINE IPÊ</text>'
       f'<text x="{n(mx+mw/2)}" y="{my+34}" font-size="8.5" fill="#aeb2b8">HOJE · SESSÃO 23:58</text></g>')
 
 
@@ -226,6 +226,81 @@ def propeller_plane():
     a('<circle class="b" cx="-22" cy="-9" r="1.4" fill="#dc5a50" filter="url(#glow)"/>')
     a('<rect class="s" x="-1" y="5" width="2" height="2" fill="#fff" filter="url(#glow)"/></g>')
 
+
+IPE = {
+    "yellow": ("#cfa93f", "#e8c868"),
+    "pink": ("#b25d8c", "#d98ab4"),
+    "white": ("#cdd2d8", "#f2f4f6"),
+}
+
+
+def congress(cx):
+    """National Congress: twin towers joined by their bridge, the Senate dome
+    and the Chamber's bowl on the long platform, just above the rail deck."""
+    base = 688
+    a(f'<rect x="{cx-125}" y="{base}" width="250" height="12" fill="#0d0e10"/>')
+    a(f'<rect x="{cx-125}" y="{base}" width="250" height="1" fill="#c8ced6" opacity=".18"/>')
+    for tx in (cx - 19, cx + 3):
+        a(f'<rect x="{tx}" y="350" width="16" height="{base-350}" fill="#111215"/>')
+        a(f'<rect x="{tx}" y="350" width="1" height="{base-350}" fill="#c8ced6" opacity=".14"/>')
+        stripes = "".join(f"M{tx+2} {y}h12" for y in range(356, base - 4, 6) if R.random() < .55)
+        a(f'<path d="{stripes}" stroke="#aeb2b8" stroke-opacity=".3" stroke-width="1.2"/>')
+    a(f'<rect x="{cx-3}" y="468" width="6" height="16" fill="#111215"/>')
+    a(f'<rect x="{cx-3}" y="472" width="6" height="2" fill="#e9ecef" opacity=".6" filter="url(#glow)"/>')
+    a(f'<path d="M{cx-112} {base}A32 19 0 0 1 {cx-48} {base}Z" fill="#121316" stroke="#c8ced6" stroke-opacity=".22"/>')
+    a(f'<path d="M{cx+38} {base-17}Q{cx+78} {base+12} {cx+118} {base-17}Z" fill="#121316" stroke="#c8ced6" stroke-opacity=".22"/>')
+    a(f'<rect x="{cx+76}" y="{base-6}" width="4" height="6" fill="#121316"/>')
+
+
+def cathedral(cx):
+    """Cathedral of Brasília: sixteen curved ribs pinched at the waist."""
+    base, waist, top = 690, 640, 598
+    ribs = []
+    for k in range(-7, 8, 2):
+        bx, wx, tx = cx + k * 4.6, cx + k * 1.6, cx + k * 3.4
+        ribs.append(f"M{n(bx)} {base}Q{n(wx)} {waist} {n(tx)} {top}")
+    d = "".join(ribs)
+    a(f'<path d="{d}" stroke="#1a1b1f" stroke-width="5" fill="none" stroke-linecap="round"/>')
+    a(f'<path d="{d}" stroke="#c8ced6" stroke-opacity=".28" stroke-width="1.1" fill="none"/>')
+    a(f'<path d="M{cx} {top-4}V{top-22}M{cx-5} {top-15}H{cx+5}" stroke="#aeb2b8" stroke-opacity=".5" stroke-width="1.2"/>')
+
+
+def ipe_tree(x, ground, scale, kind):
+    """An ipê in bloom: bare twisted branches under a flat crown of flowers,
+    a carpet of fallen petals, and a few petals drifting down with the rain."""
+    base, light = IPE[kind]
+    h = 96 * scale
+    cy = ground - h
+    trunk = (f"M{n(x-3*scale)} {ground}C{n(x-6*scale)} {n(ground-h*.4)} {n(x+5*scale)} {n(ground-h*.6)} {n(x)} {n(cy+14*scale)}"
+             f"L{n(x+4*scale)} {n(cy+14*scale)}C{n(x+10*scale)} {n(ground-h*.6)} {n(x+1*scale)} {n(ground-h*.4)} {n(x+4*scale)} {ground}Z")
+    a(f'<path d="{trunk}" fill="#121316"/>')
+    limbs = []
+    for k in (-1, -.45, .35, .9):
+        ex, ey = x + k * 46 * scale, cy + R.uniform(-4, 10) * scale
+        limbs.append(f"M{n(x+1)} {n(ground-h*.55)}Q{n(x+k*18*scale)} {n(ground-h*.75)} {n(ex)} {n(ey)}")
+    a(f'<path d="{"".join(limbs)}" stroke="#121316" stroke-width="{n(2.4*scale)}" fill="none" stroke-linecap="round"/>')
+    groups = {(base, ".6"): [], (base, ".92"): [], (light, ".85"): []}
+    keys = list(groups)
+    for _ in range(150):
+        while True:
+            u, v = R.uniform(-1, 1), R.uniform(-1, 1)
+            if u * u + v * v <= 1:
+                break
+        bx, by = x + u * 62 * scale, cy + v * 30 * scale - (1 - u * u) * 8 * scale
+        r = R.uniform(2, 4.4) * scale
+        key = keys[2] if R.random() < .35 else keys[R.randrange(2)]
+        groups[key].append(f'<circle cx="{n(bx)}" cy="{n(by)}" r="{n(r)}"/>')
+    a('<g filter="url(#bloom)">' + "".join(
+        f'<g fill="{col}" opacity="{op}">' + "".join(items) + '</g>' for (col, op), items in groups.items()) + '</g>')
+    carpet = "".join(f"M{n(x+R.uniform(-70,70)*scale)} {n(ground+R.uniform(-3,6))}h{n(R.uniform(2,5))}" for _ in range(40))
+    a(f'<path d="{carpet}" stroke="{base}" stroke-opacity=".45" stroke-width="2" stroke-linecap="round"/>')
+    for i in range(6):
+        px, py = x + R.uniform(-55, 55) * scale, cy + R.uniform(0, 20)
+        fall, dur, sway = ground - py, R.uniform(6, 11), R.uniform(6, 16)
+        a(f'<ellipse cx="{n(px)}" cy="{n(py)}" rx="2" ry="1.2" fill="{light}" opacity="0">'
+          f'<animateTransform attributeName="transform" type="translate" values="0 0;{n(sway)} {n(fall*.33)};{n(-sway*.6)} {n(fall*.66)};{n(sway*.4)} {n(fall)}" dur="{n(dur)}s" begin="-{n(R.uniform(0, dur))}s" repeatCount="indefinite"/>'
+          f'<animate attributeName="opacity" values="0;.9;.9;0" dur="{n(dur)}s" begin="-{n(R.uniform(0, dur))}s" repeatCount="indefinite"/></ellipse>')
+
 a(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {VH}" preserveAspectRatio="xMidYMax slice">')
 a("<style>/*A*/"
   ".b{animation:bk 1.5s steps(1) infinite}@keyframes bk{50%{opacity:0}}"
@@ -242,6 +317,7 @@ a('<radialGradient id="vig" cx=".5" cy=".62" r=".75"><stop offset=".45" stop-col
 a('<linearGradient id="beam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e9ecef" stop-opacity=".25"/><stop offset="1" stop-color="#e9ecef" stop-opacity="0"/></linearGradient>')
 a('<linearGradient id="cone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c8ced6" stop-opacity=".16"/><stop offset="1" stop-color="#c8ced6" stop-opacity="0"/></linearGradient>')
 a('<linearGradient id="refl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9ecef" stop-opacity=".08"/><stop offset="1" stop-color="#e9ecef" stop-opacity="0"/></linearGradient>')
+a('<filter id="bloom" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation=".8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>')
 a('<filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>')
 a('<pattern id="scan" width="4" height="3" patternUnits="userSpaceOnUse"><rect width="4" height="1" fill="#000" opacity=".28"/></pattern>')
 for li, cfg in enumerate(LAYERS):
@@ -284,6 +360,8 @@ for li, cfg in enumerate(LAYERS):
         a('<rect x="1040" y="205" width="136" height="80" fill="url(#scan)"/></g>')
         eye_sign()
     if li == 2:
+        congress(560)
+        cathedral(930)
         clock_tower()
     for i, s in enumerate(signs):
         if s["layer"] == li and not (li == 2 and s["x"] < 370 and s["x"] + s["w"] > 200):
@@ -351,6 +429,9 @@ for s in signs[-2:]:
 for bx, by, r in beacons:
     a(f'<circle class="b" cx="{n(bx)}" cy="{n(by)}" r="{r}" fill="#dc5a50" filter="url(#glow)"/>')
 a("</g>")
+
+for tx, kind, size in ((70, "yellow", 1.15), (330, "pink", 1.0), (1150, "white", 1.05), (1520, "yellow", 1.2)):
+    ipe_tree(tx, 962, size, kind)
 
 for s in signs:
     if s["layer"] >= 2:

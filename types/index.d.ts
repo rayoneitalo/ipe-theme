@@ -10,7 +10,7 @@ export type Locating = 'pending' | 'failed' | 'done'
 
 declare module 'claude-code' {
   interface PluginState {
-    'garoa-theme': {
+    'ipe-theme': {
       sky: Sky | null
       time: string
       isOff: boolean

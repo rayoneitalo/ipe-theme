@@ -5,18 +5,18 @@ import type { Sky } from '../types'
 import { makeColors } from './make-colors.js'
 import { SCENE } from './scene.js'
 
-const PLUGIN = 'garoa-theme'
+const PLUGIN = 'ipe-theme'
 const GLASS = { blur: 16, tint: '#0b0c0e' }
 const OPACITY_STEPS = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] as const
 const DEFAULT_OPACITY = 0.6
-const ALT = 'São Paulo at night under drizzle: gray towers, an elevated rail line, flickering signs'
+const ALT = 'Brasília at night under drizzle: gray towers, the National Congress, ipê trees in bloom, an elevated rail line'
 const MONO = "Menlo,Consolas,'DejaVu Sans Mono',monospace"
 // Menlo and its fallbacks advance every glyph by 0.602em.
 const ADVANCE = 0.602
 
 // Token values come from the design system's generator; hand-written keys paint nothing.
 const { theme: COLORS } = makeColors({
-  label: 'GAROA/87',
+  label: 'IPÊ/87',
   only: 'dark',
   roles: { accent: '#c8d0d8', danger: '#e0625a', success: '#9cc2a8', warning: '#d1b072', pro: '#b3aed0' },
   dark: {
@@ -34,18 +34,18 @@ const { theme: COLORS } = makeColors({
   },
 })
 
-const skyAtom = atom({ plugin: 'garoa-theme', key: 'sky' } as const, null)
-const timeAtom = atom({ plugin: 'garoa-theme', key: 'time' } as const, '')
-const offAtom = atom({ plugin: 'garoa-theme', key: 'isOff' } as const, false)
-const locatingAtom = atom({ plugin: 'garoa-theme', key: 'locating' } as const, 'pending')
-const opacityAtom = atom({ plugin: 'garoa-theme', key: 'opacity' } as const, DEFAULT_OPACITY)
-const modeAtom = atom({ plugin: 'garoa-theme', key: 'mode' } as const, 'on')
+const skyAtom = atom({ plugin: 'ipe-theme', key: 'sky' } as const, null)
+const timeAtom = atom({ plugin: 'ipe-theme', key: 'time' } as const, '')
+const offAtom = atom({ plugin: 'ipe-theme', key: 'isOff' } as const, false)
+const locatingAtom = atom({ plugin: 'ipe-theme', key: 'locating' } as const, 'pending')
+const opacityAtom = atom({ plugin: 'ipe-theme', key: 'opacity' } as const, DEFAULT_OPACITY)
+const modeAtom = atom({ plugin: 'ipe-theme', key: 'mode' } as const, 'on')
 
-const SCENES = { on: 'garoa', still: 'garoa-still' } as const
+const SCENES = { on: 'ipe', still: 'ipe-still' } as const
 type Mode = keyof typeof SCENES
 type Result = { isDrawn: boolean; reason?: string }
 
-const UA = { accept: 'application/json', 'user-agent': 'garoa-theme/0.2' }
+const UA = { accept: 'application/json', 'user-agent': 'ipe-theme/0.3' }
 const LOCATORS = ['https://ipapi.co/json/', 'https://ipwho.is/']
 const CLOCK_MS = 15_000
 const WEATHER_MS = 10 * 60_000
@@ -89,7 +89,7 @@ function ledSign(segments: Segment[]): string {
   const gap = 26
   let x = pad + 14
   const body: string[] = [
-    `<circle class="d" cx="${pad + 3}" cy="${height / 2}" r="3" fill="#e9ecef" filter="url(#g)"/>`,
+    `<circle class="d" cx="${pad + 3}" cy="${height / 2}" r="3" fill="#cfa93f" filter="url(#g)"/>`,
   ]
   segments.forEach((s, i) => {
     if (i > 0) {
@@ -252,8 +252,8 @@ async function setOpacity($: any, value: number) {
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
-      name: 'garoa',
-      description: 'GAROA theme: animated, still or off',
+      name: 'ipe',
+      description: 'IPÊ theme: animated, still or off',
       argumentHint: 'on | still | off',
     })
     $.ui.status(undefined)
@@ -267,7 +267,7 @@ export const register: Register = on => {
     return next(e)
   })
 
-  on('command.run', { command: 'garoa' }, async ($, e) => {
+  on('command.run', { command: 'ipe' }, async ($, e) => {
     const mode = e.args.trim().toLowerCase() || 'on'
 
     if (mode === 'off') {
@@ -275,11 +275,11 @@ export const register: Register = on => {
       stopHud()
       await update($, offAtom, () => true)
 
-      return { text: 'GAROA theme off. Run /garoa to bring it back.' }
+      return { text: 'IPÊ theme off. Run /ipe to bring it back.' }
     }
 
     if (mode !== 'on' && mode !== 'still') {
-      return { text: 'Usage: /garoa on | still | off' }
+      return { text: 'Usage: /ipe on | still | off' }
     }
 
     await update($, modeAtom, () => mode)
@@ -289,8 +289,8 @@ export const register: Register = on => {
 
     return {
       text: set.isDrawn
-        ? `GAROA theme on (${mode === 'still' ? 'still' : 'animated'} backdrop).`
-        : `GAROA theme set but not drawn: ${set.reason}`,
+        ? `IPÊ theme on (${mode === 'still' ? 'still' : 'animated'} backdrop).`
+        : `IPÊ theme set but not drawn: ${set.reason}`,
     }
   })
 
@@ -334,7 +334,7 @@ export const register: Register = on => {
     const city = sky?.city ?? (locating === 'failed' ? 'location unavailable' : 'locating…')
     const weather = sky ? `${sky.temp}°C ${describe(sky.code)}` : ''
     const humidity = sky ? `humidity ${sky.humidity}%` : ''
-    const line = ['GAROA/87', city, time, weather, humidity].filter(Boolean).join(' · ')
+    const line = ['IPÊ/87', city, time, weather, humidity].filter(Boolean).join(' · ')
 
     if (e.surface === 'terminal') {
       const { Text } = $.ui.resolve(e)
@@ -349,7 +349,7 @@ export const register: Register = on => {
     }
     const opacity = await read($, opacityAtom)
     const segments: Segment[] = [
-      { text: 'GAROA/87', size: 11, fill: '#959aa1', spacing: 2 },
+      { text: 'IPÊ/87', size: 11, fill: '#959aa1', spacing: 2 },
       { text: city.toUpperCase(), size: 20, fill: '#e9ecef', weight: 700, glow: true },
       { text: time, size: 24, fill: '#ffffff', weight: 700, glow: true, flicker: true },
     ]
