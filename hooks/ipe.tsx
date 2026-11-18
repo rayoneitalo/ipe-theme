@@ -11,7 +11,8 @@ const PLUGIN = 'ipe-theme'
 const GLASS = { blur: 16, tint: '#0b0c0e' }
 const OPACITY_STEPS = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] as const
 const DEFAULT_OPACITY = 0.6
-const ALT = 'Brasília at night under falling ipê flowers: gray towers, the National Congress, ipê trees in bloom, an elevated rail line'
+const alt = (isRaining: boolean) =>
+  `Brasília at night under ${isRaining ? 'rain' : 'falling ipê flowers'}: gray towers, the National Congress, ipê trees in bloom, an elevated rail line`
 const MONO = "Menlo,Consolas,'DejaVu Sans Mono',monospace"
 // Menlo and its fallbacks advance every glyph by 0.602em.
 const ADVANCE = 0.602
@@ -44,6 +45,7 @@ const opacityAtom = atom({ plugin: 'ipe-theme', key: 'opacity' } as const, DEFAU
 const modeAtom = atom({ plugin: 'ipe-theme', key: 'mode' } as const, 'on')
 const musicAtom = atom({ plugin: 'ipe-theme', key: 'music' } as const, null)
 const controlAtom = atom({ plugin: 'ipe-theme', key: 'canControl' } as const, false)
+const rainingAtom = atom({ plugin: 'ipe-theme', key: 'isRaining' } as const, false)
 
 const SCENES = { on: 'ipe', still: 'ipe-still' } as const
 type Mode = keyof typeof SCENES
@@ -65,6 +67,7 @@ const SKY: Record<number, string> = {
   95: 'thunderstorm', 96: 'thunderstorm, hail', 99: 'thunderstorm, hail',
 }
 const describe = (code: number) => SKY[code] ?? 'unknown sky'
+const RAIN_CODES = new Set([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99])
 
 const escapeXml = (text: string) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -112,7 +115,13 @@ function trackBox(music: Music): string {
   )
 }
 
-const sceneFor = (music: Music | null) => (music ? SCENE.replace(EYE_BOX, trackBox(music)) : SCENE)
+const RAIN_BOX = /<!--RAIN-->[\s\S]*?<!--\/RAIN-->/
+const FLOWERS_BOX = /<!--FLOWERS-->[\s\S]*?<!--\/FLOWERS-->/
+
+function sceneFor(music: Music | null, isRaining: boolean): string {
+  const scene = SCENE.replace(isRaining ? FLOWERS_BOX : RAIN_BOX, '')
+  return music ? scene.replace(EYE_BOX, trackBox(music)) : scene
+}
 
 type Segment = { text: string; size: number; fill: string; weight?: number; spacing?: number; glow?: boolean; flicker?: boolean }
 
@@ -228,7 +237,11 @@ async function refresh($: any, relocate: boolean) {
   }
   if (place) {
     const fresh = await forecast($, place)
-    if (fresh && !sameSky(await read($, skyAtom), fresh)) await update($, skyAtom, () => fresh)
+    if (fresh) {
+      if (!sameSky(await read($, skyAtom), fresh)) await update($, skyAtom, () => fresh)
+      const isRaining = RAIN_CODES.has(fresh.code)
+      if ((await read($, rainingAtom)) !== isRaining) await update($, rainingAtom, () => isRaining)
+    }
   }
   await tick($)
 }
@@ -421,7 +434,8 @@ export const register: Register = on => {
       Box: (props: Record<string, unknown>) => JSX.Element
       Svg: (props: Record<string, unknown>) => JSX.Element
     }
-    const svg = sceneFor(await read($, musicAtom))
+    const isRaining = await read($, rainingAtom)
+    const svg = sceneFor(await read($, musicAtom), isRaining)
     const scene = props.scene ?? props.id
 
     return (
@@ -434,7 +448,7 @@ export const register: Register = on => {
         backgroundColor="#050506"
       >
         <Box flexShrink={0} width="100%">
-          <Svg source={scene === SCENES.still ? stripAnimation(svg) : svg} alt={ALT} />
+          <Svg source={scene === SCENES.still ? stripAnimation(svg) : svg} alt={alt(isRaining)} />
         </Box>
       </Box>
     )

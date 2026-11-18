@@ -21,6 +21,7 @@ declare module 'claude-code' {
       mode: 'on' | 'still'
       music: Music | null
       canControl: boolean
+      isRaining: boolean
     }
   }
 }

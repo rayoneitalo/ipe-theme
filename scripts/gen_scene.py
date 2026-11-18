@@ -350,10 +350,15 @@ a('<filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlu
 a('<pattern id="scan" width="4" height="3" patternUnits="userSpaceOnUse"><rect width="4" height="1" fill="#000" opacity=".28"/></pattern>')
 for li, cfg in enumerate(LAYERS):
     window_patterns(f"w{li}", cfg, (.1, .18, .28))
-# The skyline below was laid out from R at this point in its sequence;
-# skipping these draws reshuffles every building, sign and tree.
-for _ in range(240):
-    R.random()
+for pid, count, lo, hi in (("rn", 34, 14, 30), ("rf", 46, 8, 16)):
+    a(f'<pattern id="{pid}" width="240" height="240" patternUnits="userSpaceOnUse">')
+    d = []
+    for _ in range(count):
+        x, y, ln = R.uniform(0, 240), R.uniform(0, 240), R.uniform(lo, hi)
+        d.append(f"M{n(x)} {n(y)}l{n(ln*.12)} {n(-ln)}")
+    width, op = ("1.1", ".2") if pid == "rn" else (".8", ".1")
+    a(f'<path d="{"".join(d)}" stroke="#c8ced6" stroke-opacity="{op}" stroke-width="{width}" stroke-linecap="round"/>')
+    a("</pattern>")
 for f in FALL:
     flower_pattern(f)
 a("</defs>")
@@ -457,8 +462,15 @@ for s in signs:
         a(f'<rect x="{n(cx-s["w"]*.3)}" y="924" width="{n(s["w"]*.6)}" height="76" fill="url(#refl)"/>')
 
 a("</g>")
+# The mod keeps one of these two blocks, by the weather where the person is.
+a("<!--RAIN-->")
+for pid, dur in (("rf", ".75"), ("rn", ".42")):
+    a(f'<rect x="-240" y="-240" width="{W+480}" height="{VH+480}" fill="url(#{pid})">'
+      f'<animateTransform attributeName="transform" type="translate" from="0 0" to="0 240" dur="{dur}s" repeatCount="indefinite"/></rect>')
+a("<!--/RAIN--><!--FLOWERS-->")
 for f in FALL:
     falling_flowers(f)
+a("<!--/FLOWERS-->")
 a(f'<rect width="{W}" height="{VH}" fill="url(#scan)" opacity=".6"/>')
 a(f'<rect width="{W}" height="{VH}" fill="url(#vig)"/>')
 a("</svg>")

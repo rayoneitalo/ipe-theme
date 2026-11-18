@@ -8,10 +8,12 @@ street level, their flowers falling over the whole city.
 ## What it does
 
 - **Backdrop.** An animated scene drawn full window behind the conversation:
-  layered towers, the National Congress and the Cathedral, ipê trees in bloom
-  with their flowers falling over the whole scene, fog, an elevated rail line with a passing train, a
-  helicopter searchlight, an old propeller plane, flickering shop signs, a
-  clock tower stopped at 23:58 and a cinema marquee.
+  layered towers, the National Congress and the Cathedral, ipê trees in bloom,
+  fog, an elevated rail line with a passing train, a helicopter searchlight,
+  an old propeller plane, flickering shop signs, a clock tower stopped at
+  23:58 and a cinema marquee.
+- **Live weather.** When it rains where you are (drizzle, rain, showers or
+  thunderstorm), rain falls over the scene; otherwise ipê flowers do.
 - **Palette.** Repaints the app in dark grays with a cold white accent
   (Claude Code 2.1.325 or newer).
 - **Weather sign.** A lit sign above the message box with your city, the
