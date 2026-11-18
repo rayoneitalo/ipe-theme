@@ -20,7 +20,7 @@ and the ipês still bloom at street level.
   chat panels are over the backdrop, from 20% to 90%. The choice is kept
   across sessions.
 - **`/ipe` command.** `/ipe on`, `/ipe still` (no animation, lighter on
-  CPU) or `/ipe off`.
+  CPU) or `/ipe off`. The choice is kept across sessions.
 
 ## Install
 

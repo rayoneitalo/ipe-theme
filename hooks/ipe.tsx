@@ -322,6 +322,8 @@ const clampOpacity = (value: unknown) => {
   return Number.isFinite(n) ? Math.min(0.95, Math.max(0.1, n)) : DEFAULT_OPACITY
 }
 
+const toMode = (value: unknown): Mode => (value === 'still' ? 'still' : 'on')
+
 async function setOpacity($: any, value: number) {
   await update($, opacityAtom, () => value)
   await $.store.set('opacity', value)
@@ -337,9 +339,15 @@ export const register: Register = on => {
     })
     $.ui.status(undefined)
     const opacity = clampOpacity((await $.store.get('opacity')) ?? DEFAULT_OPACITY)
+    const mode = toMode(await $.store.get('mode'))
+    const isOff = (await $.store.get('isOff')) === true
     await update($, opacityAtom, () => opacity)
-    if (!(await read($, offAtom))) {
-      await apply($, await read($, modeAtom), opacity)
+    await update($, modeAtom, () => mode)
+    await update($, offAtom, () => isOff)
+    if (isOff) {
+      await remove($)
+    } else {
+      await apply($, mode, opacity)
       startHud($)
     }
 
@@ -380,8 +388,9 @@ export const register: Register = on => {
       await remove($)
       stopHud()
       await update($, offAtom, () => true)
+      await $.store.set('isOff', true)
 
-      return { text: 'IPÊ theme off. Run /ipe to bring it back.' }
+      return { text: 'IPÊ theme off, here and in new sessions. Run /ipe to bring it back.' }
     }
 
     if (mode !== 'on' && mode !== 'still') {
@@ -390,6 +399,8 @@ export const register: Register = on => {
 
     await update($, modeAtom, () => mode)
     await update($, offAtom, () => false)
+    await $.store.set('mode', mode)
+    await $.store.set('isOff', false)
     const set = await apply($, mode, await read($, opacityAtom))
     if (timers.length === 0) startHud($)
 
