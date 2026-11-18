@@ -12,8 +12,10 @@ street level, their flowers falling over the whole city.
   fog, an elevated rail line with a passing train, a helicopter searchlight,
   an old propeller plane, flickering shop signs, a clock tower stopped at
   23:58 and a cinema marquee.
-- **Live weather.** When it rains where you are (drizzle, rain, showers or
-  thunderstorm), rain falls over the scene; otherwise ipê flowers do.
+- **What falls.** Ipê flowers by default. `/ipe rain` brings back the rain,
+  `/ipe flowers` the flowers, and `/ipe weather` follows the live weather:
+  rain while it rains where you are (drizzle, rain, showers or
+  thunderstorm), flowers otherwise. The choice is kept across sessions.
 - **Palette.** Repaints the app in dark grays with a cold white accent
   (Claude Code 2.1.325 or newer).
 - **Weather sign.** A lit sign above the message box with your city, the

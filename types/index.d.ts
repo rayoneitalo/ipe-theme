@@ -22,6 +22,7 @@ declare module 'claude-code' {
       music: Music | null
       canControl: boolean
       isRaining: boolean
+      fall: 'flowers' | 'rain' | 'weather'
     }
   }
 }

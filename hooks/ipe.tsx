@@ -46,6 +46,7 @@ const modeAtom = atom({ plugin: 'ipe-theme', key: 'mode' } as const, 'on')
 const musicAtom = atom({ plugin: 'ipe-theme', key: 'music' } as const, null)
 const controlAtom = atom({ plugin: 'ipe-theme', key: 'canControl' } as const, false)
 const rainingAtom = atom({ plugin: 'ipe-theme', key: 'isRaining' } as const, false)
+const fallAtom = atom({ plugin: 'ipe-theme', key: 'fall' } as const, 'flowers')
 
 const SCENES = { on: 'ipe', still: 'ipe-still' } as const
 type Mode = keyof typeof SCENES
@@ -337,6 +338,16 @@ const clampOpacity = (value: unknown) => {
 
 const toMode = (value: unknown): Mode => (value === 'still' ? 'still' : 'on')
 
+const FALLS = ['flowers', 'rain', 'weather'] as const
+type Fall = (typeof FALLS)[number]
+const isFall = (value: unknown): value is Fall => (FALLS as readonly unknown[]).includes(value)
+const FALL_TEXT: Record<Fall, string> = {
+  flowers: 'Ipê flowers falling, here and in new sessions.',
+  rain: 'Rain falling, here and in new sessions.',
+  weather: 'Rain while it rains where you are, ipê flowers otherwise, here and in new sessions.',
+}
+const USAGE = 'on | still | off | flowers | rain | weather | spotify [off]'
+
 async function setOpacity($: any, value: number) {
   await update($, opacityAtom, () => value)
   await $.store.set('opacity', value)
@@ -347,13 +358,16 @@ export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'ipe',
-      description: 'IPÊ theme: animated, still or off; spotify connects the optional now-playing display',
-      argumentHint: 'on | still | off | spotify [off]',
+      description: 'IPÊ theme: animated, still or off; flowers, rain or weather picks what falls; spotify connects the optional now-playing display',
+      argumentHint: USAGE,
     })
     $.ui.status(undefined)
     const opacity = clampOpacity((await $.store.get('opacity')) ?? DEFAULT_OPACITY)
     const mode = toMode(await $.store.get('mode'))
     const isOff = (await $.store.get('isOff')) === true
+    const stored = await $.store.get('fall')
+    const fall = isFall(stored) ? stored : 'flowers'
+    await update($, fallAtom, () => fall)
     await update($, opacityAtom, () => opacity)
     await update($, modeAtom, () => mode)
     await update($, offAtom, () => isOff)
@@ -397,6 +411,13 @@ export const register: Register = on => {
       }
     }
 
+    if (isFall(word)) {
+      await update($, fallAtom, () => word)
+      await $.store.set('fall', word)
+
+      return { text: FALL_TEXT[word] }
+    }
+
     if (mode === 'off') {
       await remove($)
       stopHud()
@@ -407,7 +428,7 @@ export const register: Register = on => {
     }
 
     if (mode !== 'on' && mode !== 'still') {
-      return { text: 'Usage: /ipe on | still | off | spotify [off]' }
+      return { text: `Usage: /ipe ${USAGE}` }
     }
 
     await update($, modeAtom, () => mode)
@@ -434,7 +455,8 @@ export const register: Register = on => {
       Box: (props: Record<string, unknown>) => JSX.Element
       Svg: (props: Record<string, unknown>) => JSX.Element
     }
-    const isRaining = await read($, rainingAtom)
+    const fall = await read($, fallAtom)
+    const isRaining = fall === 'rain' || (fall === 'weather' && (await read($, rainingAtom)))
     const svg = sceneFor(await read($, musicAtom), isRaining)
     const scene = props.scene ?? props.id
 
