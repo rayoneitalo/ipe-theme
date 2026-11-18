@@ -470,7 +470,8 @@ export const register: Register = on => {
         backgroundColor="#050506"
       >
         <Box flexShrink={0} width="100%">
-          <Svg source={scene === SCENES.still ? stripAnimation(svg) : svg} alt={alt(isRaining)} />
+          {/* As an image, the desktop's SVG animation freezes after a while until the next redraw. */}
+          <Svg source={scene === SCENES.still ? stripAnimation(svg) : svg} alt={alt(isRaining)} isInteractive />
         </Box>
       </Box>
     )
