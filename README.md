@@ -2,14 +2,14 @@
 
 A black-and-gray cyberpunk theme for Claude Desktop, named after the ipê, the
 tree that turns Brasília yellow, pink and white every dry season. Brasília,
-2087: the capital grew into a gray megacity under a drizzle that never stops,
-and the ipês still bloom at street level.
+2087: the capital grew into a gray megacity, and the ipês still bloom at
+street level, their flowers falling over the whole city.
 
 ## What it does
 
 - **Backdrop.** An animated scene drawn full window behind the conversation:
   layered towers, the National Congress and the Cathedral, ipê trees in bloom
-  with petals falling through the rain, fog, an elevated rail line with a passing train, a
+  with their flowers falling over the whole scene, fog, an elevated rail line with a passing train, a
   helicopter searchlight, an old propeller plane, flickering shop signs, a
   clock tower stopped at 23:58 and a cinema marquee.
 - **Palette.** Repaints the app in dark grays with a cold white accent

@@ -2,6 +2,7 @@ import random
 import sys
 
 R = random.Random(2087)
+P = random.Random(87)
 W, H = 1600, 1000
 TOP_PAD = 280
 VH = H + TOP_PAD
@@ -239,7 +240,7 @@ def cathedral(cx):
 
 def ipe_tree(x, ground, scale, kind):
     """An ipê in bloom: bare twisted branches under a flat crown of flowers,
-    a carpet of fallen petals, and a few petals drifting down with the rain."""
+    a carpet of fallen petals, and a few petals drifting down from the crown."""
     base, light = IPE[kind]
     h = 96 * scale
     cy = ground - h
@@ -272,6 +273,39 @@ def ipe_tree(x, ground, scale, kind):
         a(f'<ellipse cx="{n(px)}" cy="{n(py)}" rx="2" ry="1.2" fill="{light}" opacity="0">'
           f'<animateTransform attributeName="transform" type="translate" values="0 0;{n(sway)} {n(fall*.33)};{n(-sway*.6)} {n(fall*.66)};{n(sway*.4)} {n(fall)}" dur="{n(dur)}s" begin="-{n(R.uniform(0, dur))}s" repeatCount="indefinite"/>'
           f'<animate attributeName="opacity" values="0;.9;.9;0" dur="{n(dur)}s" begin="-{n(R.uniform(0, dur))}s" repeatCount="indefinite"/></ellipse>')
+
+
+FALL = (
+    dict(id="ff", tile=360, count=16, size=(2, 2.8), opacity=(.35, .55), fall=26, sway=10, sway_dur=9),
+    dict(id="fm", tile=420, count=10, size=(3, 4), opacity=(.55, .75), fall=17, sway=18, sway_dur=7),
+    dict(id="fn", tile=520, count=6, size=(4.5, 6), opacity=(.75, .9), fall=11, sway=26, sway_dur=5.5),
+)
+
+
+def flower_pattern(f):
+    """One tile of falling ipê flowers: loose petals and whole trumpet-shaped
+    blossoms, kept clear of the tile's edges so none is cut at a seam."""
+    tile, (lo, hi) = f["tile"], f["size"]
+    a(f'<pattern id="{f["id"]}" width="{tile}" height="{tile}" patternUnits="userSpaceOnUse">')
+    for _ in range(f["count"]):
+        r = P.uniform(lo, hi)
+        x, y = P.uniform(r * 3, tile - r * 3), P.uniform(r * 3, tile - r * 3)
+        base, light = IPE[P.choices(list(IPE), (5, 3, 2))[0]]
+        paint = f'fill="{light if P.random() < .7 else base}" opacity="{n(P.uniform(*f["opacity"]))}"'
+        turn = n(P.uniform(0, 360))
+        if P.random() < .35:
+            a(f'<path d="M0 0L{n(r*2)} {n(-r*.7)}Q{n(r*2.6)} 0 {n(r*2)} {n(r*.7)}Z" {paint} transform="translate({n(x)} {n(y)}) rotate({turn})"/>')
+        else:
+            a(f'<ellipse cx="{n(x)}" cy="{n(y)}" rx="{n(r)}" ry="{n(r*.55)}" {paint} transform="rotate({turn} {n(x)} {n(y)})"/>')
+    a("</pattern>")
+
+
+def falling_flowers(f):
+    t, s = f["tile"], f["sway"]
+    ease = 'calcMode="spline" keyTimes="0;.5;1" keySplines=".45 0 .55 1;.45 0 .55 1"'
+    a(f'<g><animateTransform attributeName="transform" type="translate" values="-{s} 0;{s} 0;-{s} 0" {ease} dur="{n(f["sway_dur"])}s" repeatCount="indefinite"/>'
+      f'<rect x="-{t}" y="-{t}" width="{W+2*t}" height="{VH+2*t}" fill="url(#{f["id"]})">'
+      f'<animateTransform attributeName="transform" type="translate" from="0 0" to="0 {t}" dur="{f["fall"]}s" repeatCount="indefinite"/></rect></g>')
 
 
 def oryon_constellation():
@@ -316,15 +350,12 @@ a('<filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlu
 a('<pattern id="scan" width="4" height="3" patternUnits="userSpaceOnUse"><rect width="4" height="1" fill="#000" opacity=".28"/></pattern>')
 for li, cfg in enumerate(LAYERS):
     window_patterns(f"w{li}", cfg, (.1, .18, .28))
-for pid, count, lo, hi in (("rn", 34, 14, 30), ("rf", 46, 8, 16)):
-    a(f'<pattern id="{pid}" width="240" height="240" patternUnits="userSpaceOnUse">')
-    d = []
-    for _ in range(count):
-        x, y, ln = R.uniform(0, 240), R.uniform(0, 240), R.uniform(lo, hi)
-        d.append(f"M{n(x)} {n(y)}l{n(ln*.12)} {n(-ln)}")
-    width, op = ("1.1", ".2") if pid == "rn" else (".8", ".1")
-    a(f'<path d="{"".join(d)}" stroke="#c8ced6" stroke-opacity="{op}" stroke-width="{width}" stroke-linecap="round"/>')
-    a("</pattern>")
+# The skyline below was laid out from R at this point in its sequence;
+# skipping these draws reshuffles every building, sign and tree.
+for _ in range(240):
+    R.random()
+for f in FALL:
+    flower_pattern(f)
 a("</defs>")
 
 a(f'<rect width="{W}" height="{VH}" fill="url(#sky)"/>')
@@ -426,9 +457,8 @@ for s in signs:
         a(f'<rect x="{n(cx-s["w"]*.3)}" y="924" width="{n(s["w"]*.6)}" height="76" fill="url(#refl)"/>')
 
 a("</g>")
-for pid, dur in (("rf", ".75"), ("rn", ".42")):
-    a(f'<rect x="-240" y="-240" width="{W+480}" height="{VH+480}" fill="url(#{pid})">'
-      f'<animateTransform attributeName="transform" type="translate" from="0 0" to="0 240" dur="{dur}s" repeatCount="indefinite"/></rect>')
+for f in FALL:
+    falling_flowers(f)
 a(f'<rect width="{W}" height="{VH}" fill="url(#scan)" opacity=".6"/>')
 a(f'<rect width="{W}" height="{VH}" fill="url(#vig)"/>')
 a("</svg>")

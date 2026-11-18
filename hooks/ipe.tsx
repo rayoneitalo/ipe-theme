@@ -11,7 +11,7 @@ const PLUGIN = 'ipe-theme'
 const GLASS = { blur: 16, tint: '#0b0c0e' }
 const OPACITY_STEPS = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] as const
 const DEFAULT_OPACITY = 0.6
-const ALT = 'Brasília at night under drizzle: gray towers, the National Congress, ipê trees in bloom, an elevated rail line'
+const ALT = 'Brasília at night under falling ipê flowers: gray towers, the National Congress, ipê trees in bloom, an elevated rail line'
 const MONO = "Menlo,Consolas,'DejaVu Sans Mono',monospace"
 // Menlo and its fallbacks advance every glyph by 0.602em.
 const ADVANCE = 0.602
